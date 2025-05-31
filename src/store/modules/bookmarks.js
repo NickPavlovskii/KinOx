@@ -1,26 +1,41 @@
-
-// store/modules/bookmarks.js
 export default {
-    state: {
-     isBookmarked: false,
+  namespaced: true,
+  state: {
+    bookmarks: [],
+  },
+  mutations: {
+    SET_BOOKMARKS(state, bookmarks) {
+      state.bookmarks = bookmarks
     },
-    mutations: {
-      SET_BOOKMARK(state, val) {
-        state.isBookmarked = val;
-      },
+    ADD_BOOKMARK(state, movieId) {
+      if (!state.bookmarks.includes(movieId)) {
+        state.bookmarks.push(movieId)
+      }
     },
-    actions: {
-        toggleBookmark({ commit, state }) {
-            
-            const newBookmarkValue = !state.isBookmarked;
-          
-            commit('SET_BOOKMARK', newBookmarkValue);
-          
-            if (newBookmarkValue) {
-              localStorage.setItem('isBookmarked', 'true');
-            } else {
-              localStorage.removeItem('isBookmarked');
-            }
-          },
+    REMOVE_BOOKMARK(state, movieId) {
+      state.bookmarks = state.bookmarks.filter(id => id !== movieId)
     },
-  };
+  },
+  actions: {
+    loadBookmarks({ commit }) {
+      const saved = localStorage.getItem('bookmarks')
+      const bookmarks = saved ? JSON.parse(saved) : []
+      commit('SET_BOOKMARKS', bookmarks)
+    },
+    toggleBookmark({ commit, state }, movieId) {
+      const isBookmarked = state.bookmarks.includes(movieId)
+      console.log(isBookmarked)
+      let updatedBookmarks
+
+      if (isBookmarked) {
+        commit('REMOVE_BOOKMARK', movieId)
+        updatedBookmarks = state.bookmarks.filter(id => id !== movieId)
+      } else {
+        commit('ADD_BOOKMARK', movieId)
+        updatedBookmarks = [...state.bookmarks, movieId]
+      }
+
+      localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks))
+    },
+  },
+}

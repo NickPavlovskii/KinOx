@@ -3,825 +3,366 @@
     <div class="detailsBanner">
       <div class="backdrop-img">
         <div class="lazy-load-image-background">
-          <img :src="movieData.poster.url" alt="Movie Poster" class="posterImg" />
+          <img
+            alt="Movie Poster"
+            :src="movieData.poster?.url"
+          />
         </div>
       </div>
       <div class="opacity-layer"></div>
       <div class="content">
         <div class="left">
-          <img :src="movieData.poster.url" alt="Movie Poster" class="posterImg" />
-          <div style="display: flex; flex-direction: column">
-            <div style="display: flex; flex-direction: column">
-              <h3 style="margin: 25px -2px -2px -2px">Поставьте оценку</h3>
-              <span class="text">Это улучшит ваши рекомендации</span>
-            </div>
-            <div style="display: flex">
-              <img
-                src="https://primefaces.org/cdn/primevue/images/rating/cancel.png"
-                height="24"
-                width="24"
-                @click="resetRating()"
-                style="position: relative; top: 8px"
-              />
-              <Rating
-                v-model="rating"
-                :stars="10"
-                @input="saveRating"
-                class="custom-rating"
-                :cancel="false"
-              />
-            </div>
-            <div style="display: flex; justify-content: flex-end">
-              <button
-                :class="{ active: isBookmarked }"
-                @click.stop="toggleBookmark"
-                class="myButton btn-3"
-              >
-                <span>
-                  <Icon
-                    v-if="!isBookmarked"
-                    icon="ic:outline-bookmark-add"
-                    class="icn"
-                  />
-                  <Icon
-                    v-else
-                    icon="material-symbols:bookmark-add"
-                    class="icn"
-                  />
-                  Смотреть позже
-                </span>
-              </button>
-            </div>
-          </div>
+          <img
+            alt="Movie Poster"
+            class="posterImg"
+            :src="movieData.poster?.url"
+          />
+          <MovieRatingBookmark
+            :movie-id="movieData.id"
+            :initial-rating="rating"
+            :is-bookmarked="isBookmarked"
+            @update-rating="updateRating"
+            @toggle-bookmark="toggleBookmark"
+          />
         </div>
+
         <div class="right">
-          <h1 class="title">{{ movieData.name }}</h1>
-          <h4 class="subtitle">{{ movieData.alternativeName }}</h4>
-          <div class="genres">
-            <div v-for="genre in  movieData.genres" :key="genre">
-              <span class="genre">{{ genre }}</span>
-            </div>
-          </div>
-          <div class="overview">
-            <h2 class="heading">О фильме</h2>
-            <p class="description">{{  movieData.description }}</p>
-          </div>
-          <div class="right-rows">
-            <div class="row">
-              <div class="info">
-                <div class="infoItem">
-                  <span class="text bold" style="letter-spacing: 0.2em"
-                    >Режиссер</span
-                  >
-                  <span class="text">{{
-                     movieData.director.producer.join(", ")
-                  }}</span>
-                </div>
-                <div class="infoItem">
-                  <span class="text bold">Cценарист:</span>
-                  <span class="text">{{
-                     movieData.director.screenwriter.join(", ")
-                  }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="row" style="position: relative; bottom: 30px">
-              <div class="info">
-                <div class="infoItem">
-                  <span class="text bold"
-                    ><font-awesome-icon icon="globe"
-                  /></span>
-                  <span class="text">{{  movieData.country }}</span>
-                </div>
-                <div class="infoItem">
-                  <span class="text bold"
-                    ><font-awesome-icon icon="clock"
-                  /></span>
-                  <span class="text">{{
-                    convertMinutesToHours( movieData.movieLength)
-                  }}</span>
-                </div>
-                <div class="infoItem">
-                  <span class="text bold"
-                    ><font-awesome-icon icon="calendar-days"
-                  /></span>
-                  <span class="text">{{  movieData.year }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="row raiting">
-              <div class="info">
-                <div class="infoItem">
-                  <span class="text bold"
-                    ><font-awesome-icon
-                      icon="fa-brands fa-imdb"
-                      size="2xl"
-                      style="background: #1c4b91"
-                  /></span>
-                  <span
-                    class="text"
-                    style="display: flex; align-items: center"
-                    >{{  movieData.rating.imdb }}</span
-                  >
-                </div>
-                <div
-                  class="infoItem"
-                  style="display: flex; align-items: center"
-                >
-                  <span class="text bold">kp:</span>
-                  <span class="text">{{  movieData.rating.kp }}</span>
-                </div>
-              </div>
-            </div>
-            <div style="position: relative; bottom: 70px">
-              <h3 style="margin-bottom: -0px; letter-spacing: 0.2em">
-                Рейтинг Кинокритиков
-              </h3>
-              <div class="progress-bars">
-                <div
-                  style="display: flex; flex-direction: column; width: 315px"
-                >
-                  <h4 style="letter-spacing: 0.2em">В Мире</h4>
-                  <div class="progress-bar">
-                    <ProgressBar :value=" movieData.rating.filmCritics * 10">{{
-                       movieData.rating.filmCritics
-                    }}</ProgressBar>
-                  </div>
-                  <span class="text votes"
-                    >{{  movieData.votes.filmCritics }} голосов</span
-                  >
-                </div>
-                <div
-                  style="display: flex; flex-direction: column; width: 270px"
-                >
-                  <h4>В России</h4>
-                  <div class="progress-bar rf">
-                    <ProgressBar :value=" movieData.rating.russianFilmCritics">
-                      <span style="margin-bottom: 2px">{{
-                         movieData.rating.russianFilmCritics
-                      }}</span>
-                    </ProgressBar>
-                  </div>
-                  <span class="text votes"
-                    >{{  movieData.votes.russianFilmCritics }} голосов</span
-                  >
-                </div>
-              </div>
-            </div>
-            <div class="watchability" v-if=" movieData.watchability.items != null">
-              <p class="watchability-heading">Доступно на:</p>
-              <ul class="watchability-list">
-                <li v-for="item in movieData.watchability.items" :key="item._id">
-                  <a :href="item.url" target="_blank">
-                    <img
-                      :src="item.logo.url"
-                      :alt="item.name"
-                      class="watchability-logo"
-                    />
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
+          <MovieInfo :movie="movieData" />
+
+          <MovieWatchability
+            v-if="movieData.watchability?.items?.length"
+            :watchability="movieData.watchability.items"
+          />
         </div>
       </div>
+
       <h4 class="link">
-        <router-link
-          to="/"
-          style="text-decoration: none; cursor: pointer; color: white"
-        >
-          <span style="text-decoration: underline; cursor: pointer"
-            >KinOx</span
-          > </router-link
-        >/{{  movieData.name }}
+        <v-breadcrumbs :items="breadcrumbItems">
+          <template v-slot:divider>
+            <v-icon icon="mdi-chevron-right"></v-icon>
+          </template>
+        </v-breadcrumbs>
       </h4>
     </div>
-    <div style="position: relative; bottom: 100px">
-      <div class="Cast" v-if=" movieData.type !== 'cartoon'">
-        <h3 class="watchability-heading">Каст:</h3>
-        <ul class="cast-list">
-          <li v-for="item in  movieData.cast" :key="item._id">
-            <div
-              class="cast-log"
-              :style="'background-image: url(' + item.photo.url + ');'"
-            ></div>
-            <div style="display: flex; flex-direction: column">
-              <span>{{ item.name }}</span>
-              <span class="text">{{ item.role }}</span>
-            </div>
-          </li>
-        </ul>
-      </div>
-      <RecommendSection class="MyRecom" />
-    </div>
+
+    <MovieCast
+      v-if="movieData.type !== 'cartoon'"
+      :cast="movieData.cast"
+    />
+    <RecommendSection />
   </div>
 </template>
-
 <script>
-import RecommendSection from "../../components/RecommendSection.vue";
-import { Icon } from "@iconify/vue";
-import { mapState } from "vuex";
-import { mapActions,mapGetters } from "vuex";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import {
-  faClock,
-  faCalendarDays,
-  faGlobe,
-  faBookmark,
-} from "@fortawesome/free-solid-svg-icons";
-import { faImdb } from "@fortawesome/free-brands-svg-icons";
-import Rating from "primevue/rating";
-import ProgressBar from "primevue/progressbar";
+  import { mapState, mapGetters, mapActions } from 'vuex'
+  import RecommendSection from '@/components/RecommendSection.vue'
+  import MovieRatingBookmark from '@/components/moviePage/MovieRatingBookmark.vue'
+  import MovieCast from '@/components/moviePage/MovieCast.vue'
+  import MovieInfo from '@/components/moviePage/MovieInfo.vue'
+  import MovieWatchability from '@/components/moviePage/MovieWatchability.vue'
 
-library.add(faClock, faCalendarDays, faGlobe, faBookmark, faImdb);
-
-export default {
-  components: {
-    FontAwesomeIcon,
-    RecommendSection,
-    Rating,
-    ProgressBar,
-    Icon,
-  },
-  data() {
-    return {
-      rating: null, 
-      ratedMovies: {},
-    };
-  },
-
-  computed: {
-    ...mapState(["movie"]),
-    ...mapState(["isBookmarked", "rating",'bookmarks']),
-    ...mapGetters(["isMovieRated"]),
-
-
-    isBookmarked() {
-    return this.$store.state.bookmarks.isBookmarked; 
+  export default {
+    components: {
+      RecommendSection,
+      MovieRatingBookmark,
+      MovieCast,
+      MovieInfo,
+      MovieWatchability,
     },
 
-    movieRating() {
-      const ratedMovie = this.ratedMovies.find(
-        (movie) => movie.id === this.movie.movies.id
-      );
-      return ratedMovie ? ratedMovie.rating : 0;
-    },
-    movieData() {
-      // Получаем информацию о фильме на основе переданного id из маршрута
-      const movieId = parseInt(this.$route.params.id);
-      return this.movie.movies.find((movie) => movie.id === movieId);
-    },
-    // Создаем ключ для закладки на основе id фильма для хранения в LocalStorage
-    bookmarkKey() {
-      return `bookmark_${this.movieData.id}`;
-    },
-    // Создаем ключ для рейтинга на основе id фильма для хранения в LocalStorage
-    ratingKey() {
-      return `rating_${this.movieData.id}`;
-    },
-  },
-
-  methods: {
-    ...mapActions(["toggleBookmark","updateRating",]),
-    ...mapActions(["fetchMovies"]),
-  
-    resetRating() { 
-      this.rating = 0;
-      this.updateRating({ movieId: this.movieId, rating: 0 });
-    },
-    saveRating() {
-      this.updateRating({ movieId: this.movieId, rating: this.rating });
+    data() {
+      return {
+        rating: 0,
+      }
     },
 
-    convertMinutesToHours(minutes) {
-      const hours = Math.floor(minutes / 60);
-      const remainingMinutes = minutes % 60;
-      return `${hours}ч ${remainingMinutes}м`;
+    computed: {
+      ...mapState(['movie', 'bookmarks']),
+      ...mapGetters(['isMovieRated']),
+
+      breadcrumbItems() {
+        return [
+          { title: 'KinOx', href: '/' },
+          { title: this.movieData.name, disabled: true },
+        ]
+      },
+
+      movieData() {
+        const movieId = parseInt(this.$route.params.id)
+        return this.movie.movies.find((m) => m.id === movieId) || {}
+      },
+
+      isBookmarked() {
+        return this.bookmarks[this.movieData.id] || false
+      },
+
+      ratingKey() {
+        return `rating_${this.movieData.id}`
+      },
+
+      bookmarkKey() {
+        return `bookmark_${this.movieData.id}`
+      },
     },
-  },
 
-  //=================================================================================================================
-
-  watch: {
-    // Следим за изменениями свойства 'isBookmarked', чтобы обновить LocalStorage
-    isBookmarked(value) {
-      localStorage.setItem(this.bookmarkKey, value.toString());
+    methods: {
+      ...mapActions(['toggleBookmark', 'updateRating', 'fetchMovies']),
     },
-    // Следим за изменениями свойства 'rating', чтобы обновить LocalStorage
-    rating(value) {
-      localStorage.setItem(this.ratingKey, value.toString());
 
-      this.ratedMovies[this.movieData.id] = value;
-      // Serialize and save the ratedMovies object in LocalStorage under the 'ratings' key
-      localStorage.setItem("ratings", JSON.stringify(this.ratedMovies));
+    watch: {
+      isBookmarked(value) {
+        localStorage.setItem(this.bookmarkKey, value.toString())
+      },
+
+      rating(value) {
+        localStorage.setItem(this.ratingKey, value.toString())
+      },
     },
-  },
-  created() {
-    const ratingKey = `rating_${this.movieData.id}`;
-    // Загружаем оцененные фильмы из LocalStorage при создании компонента
-    const ratedMovies = localStorage.getItem("ratedMovies");
-    if (ratedMovies) {
-      this.ratedMovies = JSON.parse(ratedMovies);
-    }
-    const isBookmarked = localStorage.getItem('isBookmarked');
 
-// Если есть значение в локальном хранилище, устанавливаем его в состояние Vuex
-if (isBookmarked === 'true') {
-  this.$store.commit('SET_BOOKMARK', true);
-}
+    created() {
+      const storedRating = localStorage.getItem(this.ratingKey)
+      if (storedRating) {
+        this.rating = parseInt(storedRating)
+      }
 
-    if (localStorage.getItem(ratingKey)) {
-      this.rating = parseInt(localStorage.getItem(ratingKey));
-    }
-  },
+      const storedBookmark = localStorage.getItem(this.bookmarkKey)
+      if (storedBookmark === 'true') {
+        this.$store.commit('SET_BOOKMARK', {
+          movieId: this.movieData.id,
+          value: true,
+        })
+      }
+    },
 
-  mounted() {
-    if (!this.movie.movies.length) {
-      this.fetchMovies();
-    }
-    if (localStorage.getItem("rating")) {
-      this.savedRating = parseInt(localStorage.getItem("rating"));
-    }
-  },
-};
+    mounted() {
+      if (!this.movie.movies.length) {
+        this.fetchMovies()
+      }
+    },
+  }
 </script>
 
 <style scoped>
-.Cast {
-  position: relative;
-  bottom: 20px;
-}
-
-.genres {
-  display: flex;
-  gap: 5px;
-  margin-bottom: 6px;
-  flex-wrap: wrap;
-}
-
-.genre {
-  background-color: #da2f68;
-  padding: 3px 5px;
-  font-size: 12px;
-  border-radius: 4px;
-  color: white;
-  white-space: nowrap;
-}
-
-.container {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 20px;
-
-  height: 80%;
-}
-
-.left {
-  flex-shrink: 0;
-  width: 40%;
-}
-
-.MyRecom {
-  position: relative;
-}
-
-.custom-rating {
-  height: 24px;
-  margin-top: 7px;
-  margin-bottom: 5px;
-}
-
-.myButton {
-  color: white;
-  width: 190px;
-  background: linear-gradient(0deg, #1c4b91 0%, #027efb 100%);
-  padding: 0.6rem 0.6rem;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
-  font-weight: 1000;
-  font-style: normal;
-  cursor: pointer;
-  text-decoration: none;
-  border: none;
-  border-radius: 5px;
-  outline: none;
-}
-
-.btn-3 {
-  background: linear-gradient(
-    0deg,
-    rgba(28, 75, 145, 1) 0%,
-    rgba(2, 126, 251, 1) 100%
-  );
-  line-height: 42px;
-  padding: 0;
-  border: none;
-}
-
-.btn-3 span {
-  position: relative;
-  display: block;
-  border: none;
-  border-radius: 5.2rem;
-  width: 100%;
-  height: 100%;
-}
-
-.btn-3:before,
-.btn-3:after {
-  position: absolute;
-  content: "";
-  right: 0;
-  top: 0;
-  background: rgba(2, 126, 251, 1);
-  transition: all 0.3s ease;
-}
-
-.btn-3:before {
-  height: 0%;
-  width: 2px;
-}
-
-.btn-3:after {
-  width: 0%;
-  height: 2px;
-}
-
-.btn-3:hover {
-  background: transparent;
-  box-shadow: none;
-}
-
-.btn-3:hover:before {
-  height: 100%;
-}
-
-.btn-3:hover:after {
-  width: 100%;
-}
-
-.btn-3 span:hover {
-  color: rgba(2, 126, 251, 1);
-}
-
-.btn-3 span:before,
-.btn-3 span:after {
-  position: absolute;
-  content: "";
-  left: 0;
-  bottom: 0;
-  background: rgba(2, 126, 251, 1);
-  transition: all 0.3s ease;
-}
-
-.btn-3 span:before {
-  width: 2px;
-  height: 0%;
-}
-
-.btn-3 span:after {
-  width: 0%;
-  height: 2px;
-}
-
-.btn-3 span:hover:before {
-  height: 100%;
-}
-
-.btn-3 span:hover:after {
-  width: 100%;
-}
-
-.icn {
-  font-size: 24px;
-  margin-right: 5px;
-  position: relative;
-  top: 7px;
-}
-
-.progress-bars {
-  display: flex;
-  gap: 70px;
-}
-
-.progress-bar {
-  margin-right: 20px;
-  width: 100%;
-  margin-bottom: 10px;
-  background-color: #f2f2f2;
-  border-radius: 4px;
-  height: 20px;
-  overflow: hidden;
-}
-
-.right-rows {
-  position: relative;
-  bottom: 40px;
-}
-
-.raiting {
-  position: relative;
-  bottom: 60px;
-}
-
-.link {
-  position: absolute;
-  top: 60px;
-  left: 50px;
-}
-
-.watchability {
-  position: relative;
-
-  bottom: 70px;
-}
-
-.watchability-heading {
-  font-size: 20px;
-  color: white;
-  margin-bottom: 25px;
-  font-family: cursive;
-  letter-spacing: 0.1em;
-}
-
-.watchability-list {
-  display: flex;
-  gap: 20px;
-  overflow-y: hidden;
-  margin-right: -20px;
-  margin-left: -20px;
-  padding: 0 20px;
-  list-style-type: none;
-  overflow-x: scroll;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.watchability-list::-webkit-scrollbar {
-  width: 0;
-  /* Установите ширину полосы прокрутки на 0 */
-}
-
-.cast-list {
-  display: flex;
-  gap: 20px;
-  overflow-y: hidden;
-  margin-right: -20px;
-  margin-left: -20px;
-  padding: 0 20px;
-  list-style-type: none;
-  overflow-x: scroll;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.cast-list::-webkit-scrollbar {
-  width: 2px;
-
-  height: 8px;
-}
-
-.cast-list::-webkit-scrollbar-thumb {
-  background-color: #1c4b91;
-  border-radius: 3px;
-}
-
-.watchability-list li {
-  text-align: center;
-  color: white;
-  list-style-type: none;
-}
-
-.cast-logo {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  overflow: hidden;
-  margin-bottom: 15px;
-}
-
-.cast-log {
-  width: 100px;
-  height: 100px;
-  background-size: cover;
-  background-position: center;
-  border-radius: 50%;
-}
-
-.cast-logo img {
-  width: 80%;
-  height: 80%;
-  object-fit: cover;
-  object-position: center top;
-  display: block;
-}
-
-.watchability-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  margin-bottom: 15px;
-}
-
-.watchability-logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  display: block;
-}
-
-.detailsBanner {
-  width: 100%;
-
-  padding-top: 100px;
-  margin-bottom: 50px;
-}
-
-@media (max-width: 768px) {
-  .detailsBanner {
-    margin-bottom: 0;
-    padding-top: 120px;
-    min-height: 700px;
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+    height: 80%;
   }
-}
 
-.detailsBanner .backdrop-img {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0.1;
-  overflow: hidden;
-}
-
-.detailsBanner .backdrop-img .lazy-load-image-background {
-  width: 100%;
-  height: 100%;
-}
-
-.detailsBanner .backdrop-img .lazy-load-image-background img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-.detailsBanner .opacity-layer {
-  width: 100%;
-  height: 250px;
-  background: linear-gradient(180deg, rgba(4, 21, 45, 0) 0%, #04152d 79.17%);
-  position: absolute;
-  bottom: 0;
-  left: 0;
-}
-
-.content {
-  display: flex;
-  position: relative;
-  flex-direction: column;
-  gap: 20px;
-}
-
-@media (min-width: 768px) {
-  .content {
-    gap: 50px;
-    flex-direction: row;
+  .left {
+    flex-shrink: 0;
+    width: 40%;
   }
-}
 
-.left .row {
-  margin-top: 20px;
-}
-
-.detailsBanner .content .left .posterImg {
-  width: 100%;
-  display: block;
-  border-radius: 12px;
-}
-
-@media (min-width: 768px) {
-  .detailsBanner .content .left .posterImg {
-    max-width: 350px;
+  .MyRecom {
+    position: relative;
   }
-}
 
-.right {
-  color: white;
-  width: 50%;
-}
+  .custom-rating {
+    height: 24px;
+    margin-top: 7px;
+    margin-bottom: 5px;
+  }
 
-@media (max-width: 768px) {
-  .left,
-  .right {
+  .progress-bars {
+    display: flex;
+    gap: 70px;
+  }
+
+  .progress-bar {
+    margin-right: 20px;
     width: 100%;
-    max-width: none;
+    margin-bottom: 10px;
+    background-color: #f2f2f2;
+    border-radius: 4px;
+    height: 20px;
+    overflow: hidden;
+    transition: background-color 0.3s ease;
   }
-}
 
-.detailsBanner .content .right .title {
-  font-size: 28px;
-}
+  .right-rows {
+    position: relative;
+    bottom: 40px;
+  }
 
-@media (min-width: 768px) {
+  .raiting {
+    position: relative;
+    bottom: 60px;
+  }
+
+  .link {
+    position: absolute;
+    top: 60px;
+    left: 50px;
+  }
+
+  .detailsBanner {
+    width: 140%;
+    padding-left: 15px;
+    padding-top: 100px;
+    margin-bottom: 50px;
+  }
+
+  .detailsBanner .backdrop-img {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0.1;
+    overflow: hidden;
+  }
+
+  .detailsBanner .backdrop-img img {
+    width: 100%;
+    height: 100%;
+
+    object-position: center;
+  }
+
+  .detailsBanner .opacity-layer {
+    width: 100%;
+    height: 250px;
+    background: linear-gradient(180deg, rgba(4, 21, 45, 0) 0%, #04152d 79.17%);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
+
+  .content {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    gap: 20px;
+    transition: gap 0.3s ease;
+  }
+
+  .left .row {
+    margin-top: 20px;
+  }
+
+  .posterImg {
+    width: 100%;
+    display: block;
+    border-radius: 12px;
+    transition: transform 0.3s ease;
+  }
+
+  .posterImg:hover {
+    transform: scale(1.02);
+  }
+
+  .right {
+    color: white;
+    width: 50%;
+  }
+
   .detailsBanner .content .right .title {
-    font-size: 34px;
-    line-height: 44px;
+    font-size: 28px;
+    transition: font-size 0.3s ease;
   }
-}
 
-.detailsBanner .content .right .subtitle {
-  font-size: 16px;
-  position: relative;
-  bottom: 20px;
-  font-style: italic;
-  opacity: 0.5;
-  margin-bottom: -5px;
-}
-
-@media (min-width: 768px) {
   .detailsBanner .content .right .subtitle {
-    font-size: 20px;
-    line-height: 28px;
+    font-size: 16px;
+    position: relative;
+    bottom: 20px;
+    font-style: italic;
+    opacity: 0.5;
+    margin: 25px 0 -10px 0;
   }
-}
 
-.detailsBanner .content .right .overview {
-  margin-bottom: 25px;
-  width: 100%;
-  position: relative;
-  bottom: 10px;
-}
-
-.detailsBanner .content .right .overview .heading {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.detailsBanner .content .right .overview .description {
-  line-height: 24px;
-}
-
-@media (max-width: 768px) {
-  .detailsBanner .content .right .overview .description {
-    padding-right: 100px;
+  .detailsBanner .content .right .overview {
+    margin-bottom: 25px;
+    position: relative;
+    bottom: 10px;
   }
-}
 
-.votes {
-  margin-top: -7px;
-}
+  .right {
+    width: 100% !important;
+  }
 
-.detailsBanner .content .right .playbtn .text {
-  font-size: 20px;
-  transition: all 0.7s ease-in-out;
-}
+  @media (min-width: 768px) {
+    .rating-controls {
+      display: flex;
+    }
 
-.detailsBanner .content .row {
-  display: flex;
-  align-items: center;
-  gap: 25px;
-  margin-bottom: 20px;
-  position: relative;
-}
+    .rating-controls img {
+      margin-top: 8px;
+      margin-right: 5px;
+    }
 
-.detailsBanner .content .info {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 15px 0;
-  display: flex;
-}
+    .right {
+      width: 100% !important;
+    }
 
-.detailsBanner .content .info .infoItem {
-  margin-right: 10px;
-  display: flex;
-  flex-flow: row wrap;
-}
+    .content {
+      gap: 100px;
+      flex-direction: row;
+    }
 
-.text {
-  margin-right: 10px;
-  opacity: 0.5;
-  line-height: 24px;
-}
+    .title {
+      font-size: 34px;
+      line-height: 44px;
+    }
 
-.text.bold {
-  font-weight: 600;
-  opacity: 1;
-}
+    .subtitle {
+      font-size: 20px;
+      line-height: 28px;
+    }
+  }
 
-h1 {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
+  @media (max-width: 900px) {
+    .posterImg {
+      max-width: 350px !important;
+    }
 
-p {
-  font-size: 16px;
-  margin-bottom: 20px;
-}
+    .detailsBanner {
+      width: 100%;
+      margin-bottom: 0;
+      padding-top: 120px;
+      min-height: 700px;
+    }
+    .left {
+      width: 50%;
+    }
+
+    .right {
+      width: 60% !important;
+    }
+    .container {
+      max-width: 600px !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .left,
+    .right {
+      width: 100% !important;
+      max-width: none;
+    }
+
+    .container {
+      max-width: 415px !important;
+    }
+
+    .overview .description {
+      padding-right: 100px;
+    }
+
+    .rating-controls {
+      display: flex;
+    }
+
+    .rating-controls img {
+      margin-top: 5px;
+      margin-right: 5px;
+    }
+
+    .detailsBanner {
+      width: 100%;
+      margin-bottom: 0;
+      padding-top: 120px;
+      min-height: 700px;
+    }
+  }
 </style>

@@ -1,6 +1,6 @@
 // router.js
 import { createRouter, createWebHistory } from 'vue-router';
-import MainHeader from './components/Header/MainHeader.vue';
+import MainHeader from './components/header/MainHeader.vue';
 import MovieMain from './Pages/MainMain/MovieMain.vue';
 import MovieList from './components/MovieList.vue';
 import LikePage from './Pages/LikePage/LikePage.vue';

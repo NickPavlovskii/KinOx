@@ -1,0 +1,29 @@
+:root {
+  --bg: #f0f0f0;
+  --text: #444;
+
+  /* Шрифт */
+  --font-family-base: 'Montserrat';
+  --font-size-base: 14px;
+
+  /* Основные цвета */
+  --white-color: #ffffff;
+  --black-color: #05060f;
+
+  /* Желтые цвета */
+  --color-yellow-primary: #ffe20d;
+
+  /* Серые цвета */
+  --light-platinum: #e7e7e7;
+  --gray: #333333;
+  --light-gray: #888888;
+  --extra-light-gray: #f6f6f6;
+
+  --color-orange: #ff7f0a;
+  --color-blue: #2196f3;
+}
+
+.dark {
+  --bg: #121212;
+  --text: #ffffff;
+}
