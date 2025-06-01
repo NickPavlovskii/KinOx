@@ -164,22 +164,6 @@
     margin-bottom: 5px;
   }
 
-  .progress-bars {
-    display: flex;
-    gap: 70px;
-  }
-
-  .progress-bar {
-    margin-right: 20px;
-    width: 100%;
-    margin-bottom: 10px;
-    background-color: #f2f2f2;
-    border-radius: 4px;
-    height: 20px;
-    overflow: hidden;
-    transition: background-color 0.3s ease;
-  }
-
   .right-rows {
     position: relative;
     bottom: 40px;
@@ -200,7 +184,7 @@
     width: 140%;
     padding-left: 15px;
     padding-top: 100px;
-    margin-bottom: 50px;
+
   }
 
   .detailsBanner .backdrop-img {
@@ -281,6 +265,12 @@
     width: 100% !important;
   }
 
+  @media (max-width: 1085px) {
+    .container {
+      max-width: 900px !important;
+    }
+  }
+
   @media (min-width: 768px) {
     .rating-controls {
       display: flex;
@@ -292,7 +282,7 @@
     }
 
     .right {
-      width: 100% !important;
+      width: 50% !important;
     }
 
     .content {
@@ -327,7 +317,7 @@
     }
 
     .right {
-      width: 60% !important;
+      width: 50% !important;
     }
     .container {
       max-width: 600px !important;
@@ -361,8 +351,14 @@
     .detailsBanner {
       width: 100%;
       margin-bottom: 0;
-      padding-top: 120px;
+      padding-top: 100px;
       min-height: 700px;
+    }
+  }
+
+  @media (max-width: 2000px) {
+    .detailsBanner {
+      width: 100% !important;
     }
   }
 </style>

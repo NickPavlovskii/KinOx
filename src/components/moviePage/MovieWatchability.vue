@@ -1,7 +1,7 @@
 <template>
   <div
-    class="watchability"
     v-if="items && items.length"
+    class="watchability"
   >
     <p class="watchability-heading">Доступно на:</p>
     <ul class="watchability-list">
@@ -10,13 +10,13 @@
         :key="item._id"
       >
         <a
-          :href="item.url"
           target="_blank"
+          :href="item.url"
         >
           <img
+            class="watchability-logo"
             :src="item.logo.url"
             :alt="item.name"
-            class="watchability-logo"
           />
         </a>
       </li>
@@ -99,5 +99,11 @@
     object-position: center top;
     display: block;
     transition: transform 0.3s ease;
+  }
+
+  @media (max-width: 920px) {
+    .watchability-list {
+      gap: 10px;
+    }
   }
 </style>

@@ -65,4 +65,10 @@
   :deep(.v-slide-group) {
     width: 105%;
   }
+  @media (max-width: 1800px) {
+
+    :deep(.v-slide-group) {
+      width: 100% !important;
+    }
+  }
 </style>
