@@ -28,12 +28,16 @@
     <ul class="movie-list">
       <transition-group
         name="fade"
-        tag="li"
-        class="movie-item"
-        v-for="movie in currentMovies"
-        :key="movie.id"
+        tag="ul"
+        class="movie-list"
       >
-        <Kinox-movie-card :movie="movie" />
+        <li
+          v-for="movie in currentMovies"
+          :key="movie.id"
+          class="movie-item"
+        >
+          <kinox-movie-card :movie="movie" />
+        </li>
       </transition-group>
     </ul>
 
@@ -67,7 +71,7 @@
     components: {
       FontAwesomeIcon,
       ContentWrapper,
-  
+
       Dropdown,
       Paginator,
     },
@@ -208,7 +212,6 @@
 
   .ContentWrapper {
     text-align: center;
-    margin: 0 auto;
   }
 
   .movie-list {
@@ -221,30 +224,29 @@
   }
 
   .movie-item {
-    /* можно добавить стили для карточек, например, чтобы они занимали всю ширину ячейки */
     width: 100%;
+    max-width: 600px;
   }
   @media (max-width: 768px) {
-  .movie-list {
-    list-style: none;
-    display: grid;
-    place-items: center;       /* Центрируем ячейки */
-    grid-template-columns: 1fr; /* Одна колонка */
-    gap: 20px;
-    padding: 0;
-  }
+    .movie-list {
+      list-style: none;
+      display: grid;
+      place-items: center;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 0;
+    }
 
-  .movie-item {
-    padding: 10px;
-    display: flex;
-    justify-content: center;   /* Центрируем содержимое карточки */
-    width: 100%;               /* чтобы не растягивалась сильно */
-    max-width: 300px;          /* ограничим максимальную ширину карточки */
-  }
+    .movie-item {
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      max-width: 300px;
+    }
 
-  .container_title {
-    font-size: 1.3rem;
+    .container_title {
+      font-size: 1.3rem;
+    }
   }
-}
-
 </style>

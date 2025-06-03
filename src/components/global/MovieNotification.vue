@@ -1,25 +1,39 @@
 <template>
-    <div class="notifications">
-      <transition-group name="fade" tag="div">
+  <div class="notifications">
+    <transition-group
+      name="fade"
+      tag="div"
+    >
+      <div
+        v-for="msg in notificationStore.messages"
+        :key="msg.id"
+        class="notification"
+        :class="`notification--${msg.type}`"
+      >
         <div
-          v-for="msg in notificationStore.messages"
-          :key="msg.id"
-          class="notification"
-          :class="`notification--${msg.type}`"
-        >
-          <div class="notification__indicator" :class="`indicator--${msg.type}`"></div>
-          <div class="notification__content">
-            <font-awesome-icon :icon="getIcon(msg.type)" class="notification__icon" />
-            <span class="notification__text">{{ msg.text }}</span>
-          </div>
-          <button class="notification__close" @click="notificationStore.remove(msg.id)">×</button>
+          class="notification__indicator"
+          :class="`indicator--${msg.type}`"
+        ></div>
+        <div class="notification__content">
+          <font-awesome-icon
+            :icon="getIcon(msg.type)"
+            class="notification__icon"
+          />
+          <span class="notification__text">{{ msg.text }}</span>
         </div>
-      </transition-group>
-    </div>
-  </template>
-  
-  <script>
-  import { useNotificationStore } from '@/store/notifications'
+        <button
+          class="notification__close"
+          @click="notificationStore.remove(msg.id)"
+        >
+          ×
+        </button>
+      </div>
+    </transition-group>
+  </div>
+</template>
+
+<script>
+  import { useNotificationStore } from '@/store/modules/notifications'
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
   import {
     faCheckCircle,
@@ -29,9 +43,8 @@
   } from '@fortawesome/free-solid-svg-icons'
   import { library } from '@fortawesome/fontawesome-svg-core'
 
-  
   library.add(faCheckCircle, faExclamationTriangle, faTimesCircle, faInfoCircle)
-  
+
   export default {
     name: 'UiNotification',
     components: {
@@ -40,7 +53,6 @@
     setup() {
       const notificationStore = useNotificationStore()
 
-  
       const getIcon = (type) => {
         switch (type) {
           case 'success':
@@ -54,16 +66,16 @@
             return 'fa-solid fa-info-circle'
         }
       }
-  
+
       return {
         notificationStore,
         getIcon,
       }
     },
   }
-  </script>
-  
-  <style scoped>
+</script>
+
+<style scoped>
   .notifications {
     position: fixed;
     bottom: 20px;
@@ -74,7 +86,7 @@
     gap: 12px;
     z-index: 9999;
   }
-  
+
   .notification {
     display: flex;
     align-items: center;
@@ -87,7 +99,7 @@
     overflow: hidden;
     gap: 12px;
   }
-  
+
   .notification__indicator {
     width: 5px;
     height: 100%;
@@ -97,40 +109,40 @@
     border-top-left-radius: 12px;
     border-bottom-left-radius: 12px;
   }
-  
+
   .indicator--success {
     background-color: #4caf50;
   }
-  
+
   .indicator--error {
     background-color: #f44336;
   }
-  
+
   .indicator--warning {
     background-color: #ff9800;
   }
-  
+
   .indicator--info {
     background-color: #2196f3;
   }
-  
+
   .notification__icon {
     font-size: 1.4rem;
   }
-  
+
   .notification__content {
     display: flex;
     align-items: center;
     flex: 1;
     gap: 12px;
   }
-  
+
   .notification__text {
     font-size: 0.95rem;
     line-height: 1.4;
     flex: 1;
   }
-  
+
   .notification__close {
     background: none;
     border: none;
@@ -142,7 +154,7 @@
   .notification__close:hover {
     transform: scale(1.2);
   }
-  
+
   .fade-enter-active,
   .fade-leave-active {
     transition: opacity 0.5s ease, transform 0.5s ease;
@@ -152,5 +164,4 @@
     opacity: 0;
     transform: translateY(10px);
   }
-  </style>
-  
+</style>

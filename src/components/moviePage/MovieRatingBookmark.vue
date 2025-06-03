@@ -39,7 +39,7 @@
 <script>
   import Rating from 'primevue/rating'
   import { mapState, mapActions } from 'vuex'
-  import { useNotificationStore } from '@/store/notifications'
+  import { useNotificationStore } from '@/store/modules/notifications'
 
   export default {
     name: 'MovieRatingBookmark',
@@ -97,7 +97,6 @@
         this.rating = parseInt(savedRating)
       }
     },
-
   }
 </script>
 

@@ -131,23 +131,26 @@
     font-weight: bold;
   }
 
-
   .circle_progress {
     position: relative;
-    bottom: 70px;
-    right: 37px;
+    bottom: 60px;
+    right: 17px;
     margin-right: 30px;
     color: #ffffff;
     height: auto;
   }
-
   .ratingtext {
     position: relative;
-    bottom: 110px;
-    right: 37px;
+    bottom: 104px;
+    right: 62px;
     font-size: 21px;
     color: #020c1b;
     font-weight: bold;
     text-align: center;
+  }
+  @media (max-width: 768px) {
+    .movie-details {
+      display: none;
+    }
   }
 </style>

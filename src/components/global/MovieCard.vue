@@ -5,10 +5,19 @@
       style="cursor: pointer; text-decoration: none; list-style-type: none"
     >
       <div class="movie-poster">
+        <v-skeleton-loader
+          v-show="!imageLoaded"
+          class="poster-skeleton"
+          type="image"
+        />
+
         <img
-          :src="movie.poster.url"
+          v-show="true"
+          :src="movie.poster?.url || ''"
           alt="Постер фильма"
           class="poster-image"
+          @load="onImageLoad"
+          @error="onImageError"
         />
         <div class="description-overlay">
           <div class="shortDescription">
@@ -34,6 +43,7 @@
           </div>
         </div>
       </div>
+
       <div class="movie-details">
         <circle-progress
           class="circle_progress"
@@ -48,7 +58,7 @@
           :bg-shadow="circleProgressStyleObject.bgShadow"
           :border-width="5"
           :border-bg-width="5"
-        ></circle-progress>
+        />
         <span class="ratingtext">{{ movie.rating.kp.toFixed(1) }}</span>
         <h3 class="movie-name">{{ movie.name }}</h3>
         <div class="year">{{ movie.year }}</div>
@@ -79,6 +89,7 @@
     },
     data() {
       return {
+        imageLoaded: false,
         circleProgressStyleObject: {
           gradient: {
             angle: 90,
@@ -113,6 +124,13 @@
     },
 
     methods: {
+      onImageLoad() {
+        console.log('Изображение загружено:', this.movie.poster?.url)
+        this.imageLoaded = true
+      },
+      onImageError() {
+        console.error('Ошибка загрузки изображения:', this.movie.poster?.url)
+      },
       convertMinutesToHours(minutes) {
         const hours = Math.floor(minutes / 60)
         const remainingMinutes = minutes % 60
@@ -123,6 +141,11 @@
 </script>
 
 <style scoped>
+  .poster-skeleton {
+    width: 100%;
+    height: 320px;
+    border-radius: 11px;
+  }
   .text {
     margin-right: 5px;
     opacity: 0.5;
@@ -245,7 +268,6 @@
   .movie-poster {
     text-align: center;
     border-radius: 8px;
-    margin-right: 30px;
   }
 
   .poster-image {
@@ -385,12 +407,6 @@
     bottom: 70px;
     left: 10px;
     color: #ffffff;
-  }
-
-  .movie-poster {
-    text-align: center;
-    border-radius: 8px;
-    margin-right: 30px;
   }
 
   .poster-image {

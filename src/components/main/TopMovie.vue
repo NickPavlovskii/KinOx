@@ -12,16 +12,14 @@
         <div class="switchingTabs">
           <div class="tabItems">
             <span
+              :class="['tabItem', { active: timeFrame === 'recent' }]"
               @click="toggleTimeFrame('recent')"
-              class="tabItem"
-              :class="{ active: timeFrame === 'recent' }"
             >
               За год
             </span>
             <span
+              :class="['tabItem', { active: timeFrame === 'all' }]"
               @click="toggleTimeFrame('all')"
-              class="tabItem"
-              :class="{ active: timeFrame === 'all' }"
             >
               За все время
             </span>
@@ -34,67 +32,72 @@
       </div>
     </div>
 
-    <kinox-carousel v-if="latestMovies.length" :movies="latestMovies" />
+    <kinox-carousel
+      v-if="latestMovies.length"
+      :movies="latestMovies"
+    />
   </div>
 </template>
+
 <script>
-import { mapState } from 'vuex'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { library } from '@fortawesome/fontawesome-svg-core'
-import {
-  faArrowRight,
-  faArrowLeft,
-  faTrophy,
-  faHeart,
-} from '@fortawesome/free-solid-svg-icons'
+  import { mapState } from 'vuex'
+  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+  import { library } from '@fortawesome/fontawesome-svg-core'
+  import {
+    faArrowRight,
+    faArrowLeft,
+    faTrophy,
+    faHeart,
+  } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faArrowRight, faArrowLeft, faHeart, faTrophy)
+  library.add(faArrowRight, faArrowLeft, faHeart, faTrophy)
 
-export default {
-  components: {
-    FontAwesomeIcon,
+  export default {
+    components: {
+      FontAwesomeIcon,
+    },
 
-  },
-
-  data() {
-    return {
-      timeFrame: 'recent',
-    }
-  },
-
-  computed: {
-    ...mapState(['movie']),
-
-    latestMovies() {
-      if (!this.movie?.movies?.length) return []
-
-      const sortedMovies = [...this.movie.movies]
-        .filter((m) => m && m.rating && typeof m.rating.kp === 'number')
-        .sort((a, b) => b.rating.kp - a.rating.kp)
-
-      if (this.timeFrame === 'recent') {
-        const topYears = [...new Set(sortedMovies.map((m) => m.year))]
-          .sort((a, b) => b - a)
-          .slice(0, 3)
-        return sortedMovies.filter((m) => topYears.includes(m.year))
+    data() {
+      return {
+        timeFrame: 'recent',
       }
-
-      return sortedMovies.slice(0, 10)
     },
 
-    activeTabLeft() {
-      return this.timeFrame === 'recent' ? '0' : '100px'
-    },
-  },
+    computed: {
+      ...mapState(['movie']),
 
-  methods: {
-    toggleTimeFrame(frame) {
-      this.timeFrame = frame
+      latestMovies() {
+        if (!this.movie?.movies?.length) return []
+
+        const sortedMovies = [...this.movie.movies]
+          .filter((m) => m && m.rating && typeof m.rating.kp === 'number')
+          .sort((a, b) => b.rating.kp - a.rating.kp)
+
+        if (this.timeFrame === 'recent') {
+          const topYears = [...new Set(sortedMovies.map((m) => m.year))]
+            .sort((a, b) => b - a)
+            .slice(0, 3)
+
+          return sortedMovies
+            .filter((m) => topYears.includes(m.year))
+            .slice(0, 10)
+        }
+
+        return sortedMovies.slice(0, 10)
+      },
+
+      activeTabLeft() {
+        return this.timeFrame === 'recent' ? '0' : '100px'
+      },
     },
-  },
-}
+
+    methods: {
+      toggleTimeFrame(frame) {
+        this.timeFrame = frame
+      },
+    },
+  }
 </script>
-
 
 <style lang="scss" scoped>
   .movie-poster {
@@ -164,12 +167,6 @@ export default {
     color: #ffffff;
   }
 
-  .container {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 20px;
-    color: #fff;
-  }
   .title_container {
     display: flex;
     justify-content: space-between;

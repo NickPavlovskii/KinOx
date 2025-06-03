@@ -2,8 +2,8 @@
   <div class="container">
     <div class="title_container">
       <h2
-        class="title"
         v-if="titles[this.$route.path]"
+        class="title"
       >
         {{ titles[this.$route.path] }}
       </h2>
@@ -72,7 +72,7 @@
   } from '@fortawesome/free-solid-svg-icons'
   import Paginator from 'primevue/paginator'
   import Dropdown from 'primevue/dropdown'
-  import MovieCardFull from './MovieCardFull.vue'
+  import MovieCardFull from '@/components/MovieCardFull.vue'
 
   library.add(faArrowUp91, faArrowUp19, faBookmark, faHeart)
 
@@ -185,7 +185,7 @@
       ...mapActions(['fetchMovies', 'searchMovies', 'updateSortOrder']),
 
       onSortOptionChange() {
-        this.currentPage = 0 // сбрасываем на первую страницу при смене сортировки
+        this.currentPage = 0
       },
 
       updateSortOrder(order) {
@@ -272,16 +272,6 @@
     color: #ffffff;
   }
 
-  .ratingtext {
-    position: relative;
-    bottom: 110px;
-    right: 37px;
-    font-size: 21px;
-    color: #020c1b;
-    font-weight: bold;
-    text-align: center;
-  }
-
   .container {
     max-width: 960px;
     margin: 0 auto;
@@ -315,15 +305,9 @@
     font-family: cursive;
   }
 
-  @media (min-width: 768px) {
-    .title_container {
-      flex-direction: row;
-    }
-  }
-
   .sort-options {
     color: white;
-    margin: 0 10px;
+    margin: 20px 10px;
     color: #1c4b91;
     align-self: center;
   }
@@ -363,8 +347,6 @@
     font-weight: bold;
   }
 
-
-
   .container {
     max-width: 960px;
     margin: 0 auto;
@@ -400,7 +382,11 @@
       display: none;
     }
   }
-
+  @media (min-width: 768px) {
+    .title_container {
+      flex-direction: row;
+    }
+  }
   .row {
     display: flex;
     align-items: center;
@@ -409,9 +395,5 @@
 
   .infoItem {
     margin-right: 10px;
-  }
-
-  .ratingtext {
-    margin-left: 5px;
   }
 </style>

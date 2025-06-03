@@ -1,15 +1,18 @@
 
-import KinoCarousel from './KinoCarousel.vue'
+import KinoCarousel from './MovieCarousel.vue'
 import MovieCard from './MovieCard.vue'
 import MovieButton from './MovieButton.vue'
 import MovieNotification from './MovieNotification.vue'
 import MovieGenres from './MovieGenres.vue'
+import MovieSearchBox from './MovieSearch.vue'
+
 const components = [
   { name: 'kinox-carousel', component: KinoCarousel },
-  { name: 'Kinox-movie-card', component: MovieCard },
+  { name: 'kinox-movie-card', component: MovieCard },
   { name: 'Kinox-movie-button', component: MovieButton },
   { name: 'Kinox-notification', component: MovieNotification },
   { name: 'Kinox-genres', component: MovieGenres },
+  { name: 'Kinox-search-box', component: MovieSearchBox },
 ]
 
 export default {

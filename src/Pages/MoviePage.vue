@@ -184,6 +184,7 @@
     width: 140%;
     padding-left: 15px;
     padding-top: 100px;
+    margin-bottom: 20px;
 
   }
 
@@ -332,7 +333,7 @@
     }
 
     .container {
-      max-width: 415px !important;
+      max-width: 340px !important;
     }
 
     .overview .description {

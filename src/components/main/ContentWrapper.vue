@@ -25,23 +25,7 @@
             <h2 class="title">Результаты поиска</h2>
           </div>
         </div>
-        <div class="searchInput">
-          <input
-            class="search-input"
-            type="text"
-            placeholder="Поиск фильма"
-            v-model="searchQuery"
-            @input="handleInput"
-            @keydown.enter="handleEnter"
-            @blur="handleBlur"
-          />
-          <button
-            class="search-button"
-            @click="this.$router.push({ path: `/search` })"
-          >
-            Поиск
-          </button>
-        </div>
+        <MainSearch />
       </div>
     </div>
   </div>
@@ -49,8 +33,11 @@
 
 <script>
   import { mapState, mapActions, mapMutations } from 'vuex'
-
+  import MainSearch from './MainSearch.vue'
   export default {
+    components: {
+      MainSearch,
+    },
     data() {
       return {
         isSearchActive: false,
