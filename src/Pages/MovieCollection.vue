@@ -297,7 +297,7 @@
     width: 75%;
     height: 2px;
     background: white;
-    bottom: -3px;
+    bottom: 37px;
   }
 
   .title_container h2 {
