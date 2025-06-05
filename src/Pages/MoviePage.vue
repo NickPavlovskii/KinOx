@@ -185,7 +185,6 @@
     padding-left: 15px;
     padding-top: 100px;
     margin-bottom: 20px;
-
   }
 
   .detailsBanner .backdrop-img {
@@ -217,7 +216,7 @@
   .content {
     display: flex;
     position: relative;
-    flex-direction: column;
+
     gap: 20px;
     transition: gap 0.3s ease;
   }
@@ -272,7 +271,7 @@
     }
   }
 
-  @media (min-width: 768px) {
+  @media (min-width: 769px) {
     .rating-controls {
       display: flex;
     }
@@ -288,7 +287,6 @@
 
     .content {
       gap: 100px;
-      flex-direction: column;
     }
 
     .title {
@@ -326,6 +324,10 @@
   }
 
   @media (max-width: 768px) {
+    .content {
+      gap: 100px;
+      flex-direction: column;
+    }
     .left,
     .right {
       width: 100% !important;
@@ -333,7 +335,7 @@
     }
 
     .container {
-      max-width: 320px !important;
+      max-width: 400px !important;
     }
 
     .overview .description {
@@ -360,6 +362,12 @@
   @media (max-width: 2000px) {
     .detailsBanner {
       width: 100% !important;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .container {
+      max-width: 320px !important;
     }
   }
 </style>
