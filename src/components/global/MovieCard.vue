@@ -272,7 +272,7 @@
 
   .poster-image {
     max-width: 100%;
-    height: auto;
+    height: 350px;
     border-radius: 11px;
   }
 
@@ -409,11 +409,7 @@
     color: #ffffff;
   }
 
-  .poster-image {
-    max-width: 100%;
-    height: auto;
-    border-radius: 11px;
-  }
+
 
   .movie-details {
     padding-top: 10px;

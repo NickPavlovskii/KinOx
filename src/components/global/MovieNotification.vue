@@ -7,17 +7,13 @@
       <div
         v-for="msg in notificationStore.messages"
         :key="msg.id"
-        class="notification"
-        :class="`notification--${msg.type}`"
+        :class="`notification notification--${msg.type}`"
       >
-        <div
-          class="notification__indicator"
-          :class="`indicator--${msg.type}`"
-        ></div>
+        <div :class="`notification__indicator indicator--${msg.type}`"></div>
         <div class="notification__content">
           <font-awesome-icon
-            :icon="getIcon(msg.type)"
             class="notification__icon"
+            :icon="getIcon(msg.type)"
           />
           <span class="notification__text">{{ msg.text }}</span>
         </div>

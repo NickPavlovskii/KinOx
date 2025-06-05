@@ -288,7 +288,7 @@
 
     .content {
       gap: 100px;
-      flex-direction: row;
+      flex-direction: column;
     }
 
     .title {
@@ -333,7 +333,7 @@
     }
 
     .container {
-      max-width: 340px !important;
+      max-width: 320px !important;
     }
 
     .overview .description {

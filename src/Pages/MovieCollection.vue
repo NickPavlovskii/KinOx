@@ -374,7 +374,7 @@
 
     .poster-image {
       max-width: 60%;
-      height: auto;
+
       border-radius: 11px;
     }
 
