@@ -33,7 +33,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-
+  margin-top: 50px;
+  margin-bottom: 50px;
   margin-left: 50px;
 }
 

@@ -13,8 +13,15 @@
     </div>
     <div v-else>
       <WatchNow />
+  
+ 
+      <CategorySelector />
+
       <TopMovie />
+
+      <MovieBenefits />
       <ClapperboardIcon />
+
       <MovieList />
     </div>
   </div>
@@ -29,6 +36,8 @@
   import TopMovie from '@/components/main/TopMovie.vue'
   import WatchNow from '@/components/main/WatchNow.vue'
   import ClapperboardIcon from '@/components/ClapperboardIcon.vue'
+  import MovieBenefits from '@/components/global/MovieBenefits.vue'
+  import CategorySelector from '@/components/main/CategorySelector.vue'
 
   export default {
     components: {
@@ -39,6 +48,8 @@
       TopMovie,
       WatchNow,
       ClapperboardIcon,
+      MovieBenefits,
+      CategorySelector,
     },
     data() {
       return {
