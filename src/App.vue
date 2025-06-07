@@ -1,7 +1,6 @@
 <template>
   <div id="app">
     <div class="layout">
- 
       <MainHeader @search="updateSearchQuery" />
 
       <router-view />

@@ -367,7 +367,7 @@
 
   @media (max-width: 380px) {
     .container {
-      max-width: 320px !important;
+      max-width: 350px !important;
     }
   }
 </style>

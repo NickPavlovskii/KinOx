@@ -8,9 +8,19 @@
   color: #fff;
 }
 @media (max-width: 768px) {
-
-
   .container {
     max-width: 415px !important;
+  }
+}
+
+@media (min-width: 321px) and (max-width: 379px) {
+  .container {
+    max-width: 340px !important;
+  }
+}
+
+@media (min-width: 380px) {
+  .container {
+    max-width: 370px !important;
   }
 }
