@@ -1,7 +1,7 @@
 // store/modules/sorting.js
 export default {
   state: {
-    movies: require('../../components/kinopoisk.json').docs,
+    movies: require('../../components/mock/kinopoisk.json').docs,
     currentPage: 0,
     selectedSortOption: 'Сортировать по',
     sortOrder: 'asc',

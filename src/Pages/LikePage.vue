@@ -22,7 +22,7 @@
 
 <script>
   import { mapState } from 'vuex'
-  import ClapperboardIcon from '@/components/ClapperboardIcon.vue'
+  import ClapperboardIcon from '@/components/main/ClapperboardIcon.vue'
   import BookmarkedMovies from '@/components/LikePage/BookmarkedMovies.vue'
   import RatedMovies from '@/components/LikePage/RatedMovies.vue'
   import { library } from '@fortawesome/fontawesome-svg-core'

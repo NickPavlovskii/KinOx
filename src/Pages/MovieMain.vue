@@ -4,17 +4,16 @@
       class="ContentWrapper"
       @search="performSearch"
     />
-    <SocialLinksPanel />
+    <Kinox-social-links />
     <div
       v-if="isLoading"
       class="loader"
     >
-      <BaseLoader />
+      <Kinox-loader />
     </div>
     <div v-else>
       <WatchNow />
-  
- 
+
       <CategorySelector />
 
       <TopMovie />
@@ -29,20 +28,17 @@
 
 <script>
   import { mapActions, mapState } from 'vuex'
-  import BaseLoader from '@/components/BaseLoader.vue'
-  import SocialLinksPanel from '@/components/SocialLinksPanel.vue'
+
   import MovieList from '@/components/MovieList.vue'
   import ContentWrapper from '@/components/main/ContentWrapper.vue'
   import TopMovie from '@/components/main/TopMovie.vue'
   import WatchNow from '@/components/main/WatchNow.vue'
-  import ClapperboardIcon from '@/components/ClapperboardIcon.vue'
-  import MovieBenefits from '@/components/global/MovieBenefits.vue'
+  import ClapperboardIcon from '@/components/main/ClapperboardIcon.vue'
+  import MovieBenefits from '@/components/main/MovieBenefits.vue'
   import CategorySelector from '@/components/main/CategorySelector.vue'
 
   export default {
     components: {
-      SocialLinksPanel,
-      BaseLoader,
       ContentWrapper,
       MovieList,
       TopMovie,
@@ -79,7 +75,21 @@
       setTimeout(() => {
         this.isLoading = false
       }, 2000)
-    },
+
+
+    fetch('https://api.example.com/movies', {
+      headers: {
+        Authorization: 'Bearer VXNBS89-QB04KC8-GFRC28N-MV7RCG0',
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('Данные из API:', data) // 🔍 Вывод в консоль
+      })
+      .catch((err) => {
+        console.error('Ошибка:', err)
+      })
+  },
   }
 </script>
 

@@ -1,10 +1,10 @@
 <template>
   <div class="searchInput">
     <input
+      v-model="searchQuery"
       class="search-input"
       type="text"
       placeholder="Поиск фильма"
-      v-model="searchQuery"
       @input="handleInput"
       @keydown.enter="handleEnter"
     />

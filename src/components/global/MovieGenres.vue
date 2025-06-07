@@ -12,7 +12,7 @@
 
 <script>
   export default {
-    name: 'UiGenres',
+    name: 'MovieGenres',
     props: {
       genres: {
         type: Array,

@@ -125,7 +125,6 @@
 
     methods: {
       onImageLoad() {
-        console.log('Изображение загружено:', this.movie.poster?.url)
         this.imageLoaded = true
       },
       onImageError() {

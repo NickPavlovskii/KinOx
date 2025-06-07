@@ -4,7 +4,7 @@
       <div class="backdrop-img">
         <div class="lazy-load-image-background">
           <img
-            src="../fon.png"
+            src="/fon.png"
             alt=""
           />
         </div>

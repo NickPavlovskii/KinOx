@@ -120,6 +120,7 @@
         showResults: false,
         searchQuery: '',
         isMenuOpen: false,
+        show: false,
       }
     },
 
