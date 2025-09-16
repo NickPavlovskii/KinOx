@@ -19,7 +19,7 @@
           @load="onImageLoad"
           @error="onImageError"
         />
-        <div class="description-overlay">
+                <div class="description-overlay">
           <div class="shortDescription">
             <p>{{ movie.shortDescription }}</p>
             <div class="row">

@@ -3,80 +3,66 @@
     <img
       v-for="(clapper, index) in clapperboards"
       :key="index"
-      :class="clapper.class"
       src="@/assets/clapperboard.png"
       alt="Clapperboard"
+      :class="['clapper', clapper.size, clapper.opacity]"
     />
   </div>
 </template>
 
 <script setup>
-  const clapperboards = [
-    { class: 'clapper small faded' },
-    { class: 'clapper medium semi' },
-    { class: 'clapper large full' },
-    { class: 'clapper medium semi' },
-    { class: 'clapper small faded last' },
-  ]
+const clapperboards = [
+  { size: 'small', opacity: 'faded' },
+  { size: 'medium', opacity: 'semi' },
+  { size: 'large', opacity: 'full' },
+  { size: 'medium', opacity: 'semi' },
+  { size: 'small', opacity: 'faded' },
+]
 </script>
 
 <style scoped>
-  .clapperboard-icons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 50px;
-  }
+.clapperboard-icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 50px;
+  gap: 70px;
+}
 
-  .clapper {
-    margin-right: 70px;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-  }
+.clapper {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
 
-  .clapper.last {
-    margin-right: 50px;
-  }
+.clapper.small { height: 40px; }
+.clapper.medium { height: 80px; }
+.clapper.large { height: 140px; }
 
-  .clapper.small {
-    height: 40px;
-  }
+.clapper.faded { opacity: 0.3; }
+.clapper.semi  { opacity: 0.75; }
+.clapper.full  { opacity: 1; }
 
-  .clapper.medium {
-    height: 80px;
-  }
+.clapperboard-icons .clapper:first-child {
+  margin-left: 70px;
+}
+.clapperboard-icons .clapper:last-child {
+  margin-right: 70px;
+}
 
-  .clapper.large {
-    height: 140px;
+@media screen and (max-width: 900px) {
+  .clapper:first-child,
+  .clapper:last-child {
+    display: none;
   }
+}
 
-  .clapper.faded {
-    opacity: 0.3;
+@media screen and (max-width: 480px) {
+  .clapper:nth-child(2),
+  .clapper:nth-child(3) {
+    display: none;
   }
-
-  .clapper.semi {
-    opacity: 0.75;
+  .clapper:first-child,
+  .clapper:last-child {
+    display: block;
   }
-
-  .clapper.full {
-    opacity: 1;
-  }
-
-  @media screen and (max-width: 900px) {
-    .clapper:first-child,
-    .clapper:last-child {
-      display: none;
-    }
-  }
-
-  @media screen and (max-width: 480px) {
-    .clapper:nth-child(2),
-    .clapper:nth-child(3) {
-      display: none;
-    }
-
-    .clapper:first-child,
-    .clapper:last-child {
-      display: block;
-    }
-  }
+}
 </style>

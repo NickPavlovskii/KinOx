@@ -311,7 +311,7 @@
     }
   }
 
-  @media (max-width: 380px) {
+  @media (max-width: 400px) {
     $search-width: 6rem;
 
     .search {

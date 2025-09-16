@@ -15,7 +15,7 @@
         :key="movie.id"
         class="saved-movies__card-item"
       >
-        <Kinox-movie-card :movie="movie" />
+        <kinox-movie-card :movie="movie" class="saved-movies__card-item"/>
       </li>
     </ul>
     <div class="saved-movies__pagination">
@@ -70,4 +70,35 @@
   }
 </script>
 
-<style scoped></style>
+<style scoped>  
+
+.saved-movies__card-item {
+  width: 200px; /* defines width */
+  box-sizing: border-box; /* width includes padding + border */
+  padding: 10px;
+}
+
+
+@media (max-width: 768px) {
+    .movie-list {
+      list-style: none;
+      display: grid;
+      place-items: center;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 0;
+    }
+
+    .movie-item {
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .container_title {
+      font-size: 1.3rem;
+    }
+  }
+  </style>

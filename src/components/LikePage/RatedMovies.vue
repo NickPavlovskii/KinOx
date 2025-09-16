@@ -19,9 +19,9 @@
           :key="movie.id"
           class="saved-movies__row"
         >
-          <td class="saved-movies__cell">
-            <Kinox-movie-card
-              :movie="movie"
+          <td>
+            <kinox-movie-card
+              :movie="movie"    
               style="width: 250px"
             />
           </td>
@@ -96,6 +96,13 @@
 </script>
 
 <style scoped>
+
+.saved-movies__card-item {
+  width: 200px; /* defines width */
+  box-sizing: border-box;
+  padding: 10px;
+}
+
   .saved-movies__rating-block {
     display: flex;
     align-items: center;

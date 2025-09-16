@@ -9,7 +9,7 @@
 }
 @media (max-width: 768px) {
   .container {
-    max-width: 415px !important;
+    max-width: 390px !important;
   }
 }
 
@@ -19,8 +19,14 @@
   }
 }
 
-@media (max-width: 380px) {
+@media (max-width: 400px) {
   .container {
-    max-width: 370px !important;
+    max-width: 360px !important;
   }
+
+  @media (max-width: 362px) {
+    .container {
+        max-width: 300px !important;
+    }
+}
 }
