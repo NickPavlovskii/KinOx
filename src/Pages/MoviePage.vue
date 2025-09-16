@@ -365,7 +365,7 @@
     }
   }
 
-  @media (max-width: 380px) {
+  @media (max-width: 400px) {
     .container {
       max-width: 350px !important;
     }
