@@ -3,7 +3,7 @@
     <div class="movie-list saved-movies__list">
       <bookmarked-movies
         v-if="bookmarkedMovies.length"
-        :bookmarkedMovies="bookmarkedMovies"
+ 
         :moviesPerPage="moviesPerPage"
       />
       <clapperboard-icon
@@ -12,7 +12,7 @@
       />
       <rated-movies
         v-if="ratedMovies.length > 0"
-        :ratedMovies="ratedMovies"
+        
         :moviesPerPage="moviesPerPage"
         @remove-rating="removeRating"
       />

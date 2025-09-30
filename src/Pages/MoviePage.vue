@@ -1,6 +1,16 @@
 <template>
   <div class="container">
-    <div class="detailsBanner">
+    <div
+      v-if="isLoading"
+      class="loader"
+    >
+      <Kinox-loader />
+    </div>
+
+    <div
+      v-else-if="movieData?.id"
+      class="detailsBanner"
+    >
       <div class="backdrop-img">
         <div class="lazy-load-image-background">
           <img
@@ -10,6 +20,7 @@
         </div>
       </div>
       <div class="opacity-layer"></div>
+
       <div class="content">
         <div class="left">
           <img
@@ -45,13 +56,21 @@
       </h4>
     </div>
 
+    <div
+      v-else
+      class="not-found"
+    >
+      <p>Фильм не найден</p>
+    </div>
+
     <MovieCast
-      v-if="movieData.type !== 'cartoon'"
+      v-if="movieData?.id && movieData.type !== 'cartoon'"
       :cast="movieData.cast"
     />
     <RecommendSection />
   </div>
 </template>
+
 <script>
   import { mapState, mapGetters, mapActions } from 'vuex'
   import RecommendSection from '@/components/RecommendSection.vue'
@@ -72,70 +91,80 @@
     data() {
       return {
         rating: 0,
+        isLoading: true,
+        movieData: null,
       }
     },
 
     computed: {
-      ...mapState(['movie', 'bookmarks']),
-      ...mapGetters(['isMovieRated']),
+      ...mapState('movie', ['bookmarks']),
+      ...mapGetters('movie', ['isMovieRated']),
 
       breadcrumbItems() {
         return [
           { title: 'KinOx', href: '/' },
-          { title: this.movieData.name, disabled: true },
+          { title: this.movieData?.name || 'Загрузка...', disabled: true },
         ]
       },
 
-      movieData() {
-        const movieId = parseInt(this.$route.params.id)
-        return this.movie.movies.find((m) => m.id === movieId) || {}
-      },
-
       isBookmarked() {
-        return this.bookmarks[this.movieData.id] || false
+        return this.movieData
+          ? this.bookmarks[this.movieData.id] || false
+          : false
       },
 
       ratingKey() {
-        return `rating_${this.movieData.id}`
+        return this.movieData ? `rating_${this.movieData.id}` : null
       },
 
       bookmarkKey() {
-        return `bookmark_${this.movieData.id}`
+        return this.movieData ? `bookmark_${this.movieData.id}` : null
       },
     },
 
     methods: {
-      ...mapActions(['toggleBookmark', 'updateRating', 'fetchMovies']),
+      ...mapActions('movie', [
+        'toggleBookmark',
+        'updateRating',
+        'fetchMovieById',
+      ]),
     },
 
     watch: {
       isBookmarked(value) {
-        localStorage.setItem(this.bookmarkKey, value.toString())
+        if (this.bookmarkKey) {
+          localStorage.setItem(this.bookmarkKey, value.toString())
+        }
       },
-
       rating(value) {
-        localStorage.setItem(this.ratingKey, value.toString())
+        if (this.ratingKey) {
+          localStorage.setItem(this.ratingKey, value.toString())
+        }
       },
     },
 
-    created() {
-      const storedRating = localStorage.getItem(this.ratingKey)
-      if (storedRating) {
-        this.rating = parseInt(storedRating)
-      }
+    async created() {
+      const movieId = parseInt(this.$route.params.id)
+      try {
 
-      const storedBookmark = localStorage.getItem(this.bookmarkKey)
-      if (storedBookmark === 'true') {
-        this.$store.commit('SET_BOOKMARK', {
-          movieId: this.movieData.id,
-          value: true,
-        })
-      }
-    },
+        const movie = await this.fetchMovieById(movieId)
+   
+        this.movieData = movie
 
-    mounted() {
-      if (!this.movie.movies.length) {
-        this.fetchMovies()
+        const storedRating = localStorage.getItem(this.ratingKey)
+        if (storedRating) this.rating = parseInt(storedRating)
+
+        const storedBookmark = localStorage.getItem(this.bookmarkKey)
+        if (storedBookmark === 'true') {
+          this.$store.commit('movie /SET_BOOKMARK', {
+            movieId: this.movieData.id,
+            value: true,
+          })
+        }
+      } catch (e) {
+        console.error('Ошибка при загрузке фильма:', e)
+      } finally {
+        this.isLoading = false
       }
     },
   }

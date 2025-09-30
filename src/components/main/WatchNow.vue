@@ -10,35 +10,35 @@
       />
       Новинки
     </h2>
-    <kinox-carousel  :movies="latestMovies" />
+    <kinox-carousel :movies="latestMovies" />
   </div>
 </template>
+
 <script>
-  import { mapState } from 'vuex'
-  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-  import { library } from '@fortawesome/fontawesome-svg-core'
-  import {
-    faArrowRight,
-    faArrowLeft,
-    faFire,
-  } from '@fortawesome/free-solid-svg-icons'
+import { mapState } from 'vuex'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import {
+  faArrowRight,
+  faArrowLeft,
+  faFire,
+} from '@fortawesome/free-solid-svg-icons'
 
-  library.add(faArrowRight, faArrowLeft, faFire)
+library.add(faArrowRight, faArrowLeft, faFire)
 
-  export default {
-    components: {
-      FontAwesomeIcon,
+export default {
+  components: {
+    FontAwesomeIcon,
+  },
+  computed: {
+    ...mapState('movie', ['movies']), // указываем модуль movie и поле movies
+    latestMovies() {
+      if (this.movies.length > 0) {
+        const sorted = [...this.movies].sort((a, b) => b.year - a.year)
+        return sorted.slice(0, 10)
+      }
+      return []
     },
-    computed: {
-      ...mapState(['movie']),
-      latestMovies() {
-        if (this.movie.movies.length > 0) {
-          const sorted = [...this.movie.movies].sort((a, b) => b.year - a.year)
-          return sorted.slice(0, 10)
-        }
-        return []
-      },
-    },
-  }
+  },
+}
 </script>
-

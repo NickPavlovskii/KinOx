@@ -27,70 +27,58 @@
 </template>
 
 <script>
-  import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
-  import MovieList from '@/components/MovieList.vue'
-  import ContentWrapper from '@/components/main/ContentWrapper.vue'
-  import TopMovie from '@/components/main/TopMovie.vue'
-  import WatchNow from '@/components/main/WatchNow.vue'
-  import ClapperboardIcon from '@/components/main/ClapperboardIcon.vue'
-  import MovieBenefits from '@/components/main/MovieBenefits.vue'
-  import CategorySelector from '@/components/main/CategorySelector.vue'
+import MovieList from '@/components/MovieList.vue'
+import ContentWrapper from '@/components/main/ContentWrapper.vue'
+import TopMovie from '@/components/main/TopMovie.vue'
+import WatchNow from '@/components/main/WatchNow.vue'
+import ClapperboardIcon from '@/components/main/ClapperboardIcon.vue'
+import MovieBenefits from '@/components/main/MovieBenefits.vue'
+import CategorySelector from '@/components/main/CategorySelector.vue'
 
-  export default {
-    components: {
-      ContentWrapper,
-      MovieList,
-      TopMovie,
-      WatchNow,
-      ClapperboardIcon,
-      MovieBenefits,
-      CategorySelector,
-    },
-    data() {
-      return {
-        isLoading: true,
+export default {
+  components: {
+    ContentWrapper,
+    MovieList,
+    TopMovie,
+    WatchNow,
+    ClapperboardIcon,
+    MovieBenefits,
+    CategorySelector,
+  },
+  data() {
+    return {
+      isLoading: true,
+    }
+  },
+  async mounted() {
+    try {
+      await this.fetchMovie()
+    } finally {
+      this.isLoading = false
+    }
+  },
+  computed: {
+    ...mapState('movie', ['movies', 'filteredMovies', 'searchQuery']),
+  },
+  methods: {
+    ...mapActions('movie', ['fetchMovie', 'searchMovies']),
+
+    async searchMoviesWithLoader() {
+      this.isLoading = true
+      try {
+        await this.searchMovies()
+      } finally {
+        this.isLoading = false
       }
     },
-    async beforeMount() {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      this.isLoading = false
-    },
-    computed: {
-      ...mapState(['movie']),
-    },
-    methods: {
-      ...mapActions(['movie', 'fetchMovies']),
-      async searchMoviesWithLoader() {
-        this.isLoading = true
-        await new Promise((resolve) => setTimeout(resolve, 2000))
-        await this.$store.dispatch('movie/searchMovies')
-        this.isLoading = false
-      },
-      performSearch() {
-        this.searchMoviesWithLoader()
-      },
-    },
-    mounted() {
-      setTimeout(() => {
-        this.isLoading = false
-      }, 2000)
 
-
-    fetch('https://api.example.com/movies', {
-      headers: {
-        Authorization: 'Bearer VXNBS89-QB04KC8-GFRC28N-MV7RCG0',
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log('Данные из API:', data) // 🔍 Вывод в консоль
-      })
-      .catch((err) => {
-        console.error('Ошибка:', err)
-      })
+    performSearch() {
+      this.searchMoviesWithLoader()
+    },
   },
-  }
+}
 </script>
 
 <style scoped>

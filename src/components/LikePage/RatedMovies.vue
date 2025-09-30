@@ -20,15 +20,16 @@
           class="saved-movies__row"
         >
           <td>
+            {{ console.log(movie) }}
             <kinox-movie-card
-              :movie="movie"    
+              :movie="movie"
               style="width: 250px"
             />
           </td>
           <td class="Rating saved-movies__cell saved-movies__cell--rating">
             <div class="saved-movies__rating-block">
               <Rating
-                v-model="movie.like"
+                v-model="movie.ratings"
                 class="saved-movies__rating custom-rating"
                 :stars="10"
                 :cancel="false"
@@ -39,7 +40,7 @@
                 src="https://primefaces.org/cdn/primevue/images/rating/cancel.png"
                 height="24"
                 width="24"
-                @click="$emit('remove-rating', movie.id)"
+                @click="removeRating(movie.id)"
               />
             </div>
           </td>
@@ -49,8 +50,8 @@
     <div class="saved-movies__pagination pagination">
       <Paginator
         v-model:first="currentPage"
-        :rows="1"
-        :totalRecords="pages"
+        :rows="moviesPerPage"
+        :totalRecords="ratedMovies.length"
       />
     </div>
   </section>
@@ -60,6 +61,8 @@
   import Paginator from 'primevue/paginator'
   import Rating from 'primevue/rating'
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+  import { supabase } from '@/supabase'
+  import { mapActions } from 'vuex'
 
   export default {
     name: 'RatedMovies',
@@ -69,10 +72,6 @@
       FontAwesomeIcon,
     },
     props: {
-      ratedMovies: {
-        type: Array,
-        required: true,
-      },
       moviesPerPage: {
         type: Number,
         default: 6,
@@ -81,6 +80,8 @@
     data() {
       return {
         currentPage: 0,
+        ratedMovies: [], // список фильмов с оценками
+        isLoading: true,
       }
     },
     computed: {
@@ -88,20 +89,72 @@
         const start = this.currentPage * this.moviesPerPage
         return this.ratedMovies.slice(start, start + this.moviesPerPage)
       },
-      pages() {
-        return Math.ceil(this.ratedMovies.length / this.moviesPerPage)
+    },
+    methods: {
+      ...mapActions('movie', ['fetchMovieById', 'deleteRating']),
+
+      async loadRatedMovies() {
+        try {
+          // 1. Получаем ID фильмов с оценками
+          const { data: ratings, error } = await supabase
+            .from('ratings')
+            .select('movie_id, rating')
+
+          if (error) throw error
+
+          if (!ratings?.length) {
+            this.ratedMovies = []
+            return
+          }
+
+          const movieIds = ratings.map((r) => r.movie_id)
+
+          // 2. Параллельная загрузка фильмов
+          const movies = await Promise.all(
+            movieIds.map((id) => this.fetchMovieById(id))
+          )
+
+          // 3. Объединяем с оценками
+          this.ratedMovies = movies
+            .map((movie) => {
+              const found = ratings.find((r) => r.movie_id === movie.id)
+              return found
+                ? { ...movie, ratings: Number(found.rating) || 0 }
+                : null
+            })
+            .filter(Boolean)
+
+          console.log('ratedMovies:', this.ratedMovies)
+        } catch (err) {
+          console.error('Ошибка при загрузке оценённых фильмов:', err.message)
+        } finally {
+          this.isLoading = false
+        }
       },
+
+      async removeRating(movieId) {
+        try {
+          // Вызов экшена с namespace
+          await this.$store.dispatch('ratings/deleteRating', movieId)
+          // Обновляем локальный массив
+          this.ratedMovies = this.ratedMovies.filter((m) => m.id !== movieId)
+        } catch (err) {
+          console.error('Ошибка при удалении рейтинга:', err.message)
+        }
+      },
+    },
+    created() {
+      this.loadRatedMovies()
     },
   }
 </script>
 
 <style scoped>
-
-.saved-movies__card-item {
-  width: 200px; /* defines width */
-  box-sizing: border-box;
-  padding: 10px;
-}
+  .saved-movies__card-item {
+    width: 200px; /* defines width */
+    box-sizing: border-box;
+    padding: 10px;
+  }
 
   .saved-movies__rating-block {
     display: flex;

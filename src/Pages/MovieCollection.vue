@@ -21,23 +21,28 @@
 
         <font-awesome-icon
           v-if="sortOrder === 'asc'"
-          icon="arrow-up-9-1"
+          :icon="['fas', 'arrow-up-9-1']"
           class="icon_select"
-          @click="updateSortOrder('desc')"
+          @click="setSortOrder('desc')"
         />
         <font-awesome-icon
           v-else
-          icon="arrow-up-1-9"
+          :icon="['fas', 'arrow-up-1-9']"
           class="icon_select"
-          @click="updateSortOrder('asc')"
+          @click="setSortOrder('asc')"
         />
       </div>
     </div>
 
-    <ul
-      class="movie-list"
-      v-if="displayedMovies.length"
+    <div
+      v-if="loading"
+      class="loader"
     >
+      <Kinox-loader />
+    </div>
+    <ul 
+      v-else-if="displayedMovies.length" 
+      class="movie-list">
       <li
         v-for="(movie, index) in displayedMovies"
         :key="movie.id"
@@ -71,9 +76,9 @@
 <script>
   import { mapState, mapGetters, mapMutations, mapActions } from 'vuex'
 
-  import MovieCardFull from '@/components/MovieCardFull.vue'
-  import Dropdown from 'primevue/dropdown'
-  import Paginator from 'primevue/paginator'
+import MovieCardFull from '@/components/MovieCardFull.vue'
+import Dropdown from 'primevue/dropdown'
+import Paginator from 'primevue/paginator'
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
   import { library } from '@fortawesome/fontawesome-svg-core'
   import {
@@ -85,50 +90,43 @@
 
   library.add(faBookmark, faHeart, faArrowUp91, faArrowUp19)
 
-  export default {
+export default {
     components: {
       MovieCardFull,
       Dropdown,
       Paginator,
       FontAwesomeIcon,
     },
-    data() {
-      return {
-        first: 0,
-        itemsPerPage: 10,
-        titles: {
-          '/movie': 'Фильмы',
-          '/cartoon': 'Мультфильмы',
-          '/tv-series': 'Сериалы',
-          '/Comedy': 'Комедии',
-          '/Thriller': 'Боевики',
-          '/Drama': 'Драмы',
-          '/Fantasy': 'Фэнтези',
-          '/Action': 'Боевики',
-          '/Adventures': 'Приключения',
-          '/Fiction': 'Фантастика',
-          '/Crime': 'Преступления',
-        },
-      }
-    },
-    computed: {
-      ...mapState(['movie', 'sorting']),
-      ...mapGetters(['getMovieById']),
+  data() {
+    return {
+      first: 0,
+      itemsPerPage: 10,
+      loading: true,
+      titles: {
+        '/movie': 'Фильмы',
+        '/cartoon': 'Мультфильмы',
+        '/tv-series': 'Сериалы',
+      },
+    }
+  },
+  computed: {
+    ...mapState(['movie', 'sorting']),
+    ...mapGetters(['getMovieById']),
 
-      sortOrder() {
-        return this.sorting.sortOrder
+    sortOrder() {
+      return this.sorting.sortOrder
+    },
+    sortOptions() {
+      return this.sorting.sortOptions
+    },
+    selectedSortOption: {
+      get() {
+        return this.sorting.selectedSortOption
       },
-      sortOptions() {
-        return this.sorting.sortOptions
+      set(option) {
+        this.updateSelectedSortOption(option)
       },
-      selectedSortOption: {
-        get() {
-          return this.sorting.selectedSortOption
-        },
-        set(option) {
-          this.updateSelectedSortOption(option)
-        },
-      },
+    },
 
       filteredMovies() {
         const path = this.$route.path.slice(1)
@@ -141,45 +139,56 @@
         })
       },
 
-      sortedMovies() {
-        const key = this.selectedSortOption
+    sortedMovies() {
+      const key = this.selectedSortOption
         const sorted = [...this.filteredMovies]
-        if (!key) return sorted
+      if (!key) return sorted
 
-        return sorted.sort((a, b) => {
+      return sorted.sort((a, b) => {
           const aVal = this.getPropertyValue(a, key)
           const bVal = this.getPropertyValue(b, key)
 
-          if (typeof aVal === 'string') {
+        if (typeof aVal === 'string') {
             return this.sortOrder === 'asc'
               ? aVal.localeCompare(bVal)
               : bVal.localeCompare(aVal)
-          }
-          return this.sortOrder === 'asc' ? aVal - bVal : bVal - aVal
-        })
-      },
+        }
+        return this.sortOrder === 'asc' ? aVal - bVal : bVal - aVal
+      })
+    },
 
       currentPage() {
         return Math.floor(this.first / this.itemsPerPage) + 1
       },
-      displayedMovies() {
+    displayedMovies() {
         const start = this.first
         const pageMovies = this.sortedMovies.slice(
           start,
           start + this.itemsPerPage
         )
-        console.log('Current page:', this.currentPage)
-        console.log('Items per page:', this.itemsPerPage)
-        console.log('Total sorted movies:', this.sortedMovies.length)
-        console.log('Movies for this page:', pageMovies.length)
-        return pageMovies
-      },
-    },
-    methods: {
-      ...mapMutations(['updateSelectedSortOption', 'SET_SORT_ORDER']),
-      ...mapActions(['fetchMovies', 'updateSortOrder']),
 
-      onSortOptionChange() {
+        return pageMovies
+    },
+  },
+  methods: {
+    ...mapMutations( ['updateSelectedSortOption', 'SET_SORT_ORDER']),
+    ...mapActions('movie', ['fetchMovies', 'updateSortOrder']),
+
+    async loadMovies() {
+      this.loading = true
+      const path = this.$route.path.slice(1).toLowerCase()
+
+      try {
+        if (path === 'movie' || path === 'cartoon' || path === 'tv-series') {
+          await this.fetchMovies({ type: path })
+        } else {
+          await this.fetchMovies({ genre: path })
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+    onSortOptionChange() {
         this.currentPage = 0
       },
       updateSortOrder(order) {
@@ -189,16 +198,18 @@
       getPropertyValue(obj, path) {
         return path.split('.').reduce((o, p) => (o ? o[p] : null), obj)
       },
+    setSortOrder(order) { this.SET_SORT_ORDER(order); this.first = 0 },
+  },
+  mounted() {
+    this.fetchMovies()
+    this.loadMovies()
+  },
+  watch: {
+    '$route.path'() {
+      this.first = 0
+      this.loadMovies()
     },
-    mounted() {
-      this.fetchMovies()
-    },
-
-    watch: {
-      '$route.path'() {
-        this.first = 0
-      },
-      filteredMovies(newVal) {
+    filteredMovies(newVal) {
         const maxFirst = Math.max(
           0,
           (Math.ceil(newVal.length / this.itemsPerPage) - 1) * this.itemsPerPage
@@ -207,8 +218,8 @@
           this.first = maxFirst
         }
       },
-    },
-  }
+  },
+}
 </script>
 
 <style scoped>

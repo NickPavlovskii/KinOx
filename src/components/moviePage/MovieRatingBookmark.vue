@@ -17,7 +17,7 @@
         v-model="rating"
         :stars="10"
         :cancel="false"
-        @change="saveRating"
+        @change="handleRatingChange"
       />
     </div>
 
@@ -50,52 +50,64 @@
         required: true,
       },
     },
-    data() {
-      return {
-        rating: 0,
-      }
-    },
     computed: {
       ...mapState('bookmarks', ['bookmarks']),
+      ...mapState('ratings', ['ratings']),
+
       isBookmarked() {
-        return (
-          Array.isArray(this.bookmarks) && this.bookmarks.includes(this.movieId)
-        )
+        return this.bookmarks.includes(this.movieId)
       },
-      ratingKey() {
-        return `rating_${this.movieId}`
+
+      rating: {
+        get() {
+          return this.ratings[this.movieId] || 0
+        },
+        set(value) {
+          this.saveRating({ movieId: this.movieId, rating: value })
+        },
       },
     },
     methods: {
       ...mapActions('bookmarks', ['toggleBookmark', 'loadBookmarks']),
+      ...mapActions('ratings', ['saveRating', 'deleteRating', 'loadRating']),
+
       toggleBookmarkAction() {
         const wasBookmarked = this.isBookmarked
-        this.toggleBookmark(this.movieId).then(() => {
-          const store = useNotificationStore()
-          store.show({
-            type: wasBookmarked ? 'error' : 'success',
-            text: wasBookmarked
-              ? 'Фильм удалён из закладок'
-              : 'Фильм добавлен в закладки',
+        this.toggleBookmark(this.movieId)
+          .then(() => {
+            const store = useNotificationStore()
+            store.show({
+              type: wasBookmarked ? 'info' : 'success',
+              text: wasBookmarked
+                ? 'Фильм удалён из закладок'
+                : 'Фильм добавлен в закладки',
+            })
           })
-        })
+          .catch(() => {
+            const store = useNotificationStore()
+            store.show({
+              type: 'error',
+              text: 'Ошибка при изменении закладок',
+            })
+          })
+      },
+      handleRatingChange() {
+   // достаём именно число из объекта
+
       },
 
-      saveRating() {
-        localStorage.setItem(this.ratingKey, this.rating.toString())
-      },
       resetRating() {
-        this.rating = 0
-        this.saveRating()
+        this.deleteRating(this.movieId)
+        const store = useNotificationStore()
+        store.show({
+          type: 'info',
+          text: 'Оценка удалена',
+        })
       },
     },
     created() {
       this.loadBookmarks()
-
-      const savedRating = localStorage.getItem(this.ratingKey)
-      if (savedRating) {
-        this.rating = parseInt(savedRating)
-      }
+      this.loadRating(this.movieId)
     },
   }
 </script>

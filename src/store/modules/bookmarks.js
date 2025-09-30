@@ -1,3 +1,5 @@
+import { supabase } from '@/supabase'
+
 export default {
   namespaced: true,
   state: {
@@ -17,25 +19,48 @@ export default {
     },
   },
   actions: {
-    loadBookmarks({ commit }) {
-      const saved = localStorage.getItem('bookmarks')
-      const bookmarks = saved ? JSON.parse(saved) : []
-      commit('SET_BOOKMARKS', bookmarks)
-    },
-    toggleBookmark({ commit, state }, movieId) {
-      const isBookmarked = state.bookmarks.includes(movieId)
-      console.log(isBookmarked)
-      let updatedBookmarks
+    async loadBookmarks({ commit }) {
+      try {
+        const { data, error } = await supabase
+          .from('bookmarks')
+          .select('movie_id')
 
-      if (isBookmarked) {
-        commit('REMOVE_BOOKMARK', movieId)
-        updatedBookmarks = state.bookmarks.filter(id => id !== movieId)
-      } else {
-        commit('ADD_BOOKMARK', movieId)
-        updatedBookmarks = [...state.bookmarks, movieId]
+        if (error) throw error
+
+        commit(
+          'SET_BOOKMARKS',
+          data.map(b => b.movie_id)
+        )
+      } catch (err) {
+        console.error('Ошибка загрузки закладок:', err.message)
       }
+    },
 
-      localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks))
+    async toggleBookmark({ state, commit }, movieId) {
+      try {
+        if (state.bookmarks.includes(movieId)) {
+          const { error } = await supabase
+            .from('bookmarks')
+            .delete()
+            .eq('movie_id', movieId)
+
+          if (error) throw error
+          commit('REMOVE_BOOKMARK', movieId)
+          console.log('Закладка удалена:', movieId)
+        } else {
+          // 🔹 Иначе → добавляем
+          const { data, error } = await supabase
+            .from('bookmarks')
+            .insert([{ movie_id: movieId }])
+            .select()
+
+          if (error) throw error
+          commit('ADD_BOOKMARK', movieId)
+          console.log('Закладка добавлена:', data)
+        }
+      } catch (err) {
+        console.error('Ошибка при изменении закладки:', err.message)
+      }
     },
   },
 }

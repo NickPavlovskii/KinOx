@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="recommendedMovies.length > 0"
+    v-if="recommendedMovies.length"
     class="container"
   >
     <h2 class="title">Рекомендуем к просмотру</h2>
@@ -9,79 +9,150 @@
 </template>
 
 <script>
-  import { mapState } from 'vuex'
-  import { library } from '@fortawesome/fontawesome-svg-core'
-  import { faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
-  library.add(faArrowRight, faArrowLeft)
+  import { mapState, mapActions } from 'vuex'
+  import { supabase } from '@/supabase'
 
   export default {
-    components: {},
+    name: 'RecommendedMovies',
+    data() {
+      return {
+        recommendedMovies: [],
+        ratedMovies: [],
+        isLoading: true,
+      }
+    },
     computed: {
-      ...mapState(['movie']),
-      recommendedMovies() {
-        const { movies } = this.movie
-        if (!Array.isArray(movies)) return []
+      ...mapState('movie', ['movies', 'bookmarks']),
+    },
+    methods: {
+      ...mapActions('movie', ['fetchMovieById', 'fetchMovies']),
 
-        const isLikedOrBookmarked = (movie) => {
-          return (
-            localStorage.getItem(`bookmark_${movie.id}`) === 'true' ||
-            localStorage.getItem(`like_${movie.id}`) === 'true'
-          )
+      async loadBookmarkedMovies() {
+        try {
+          const { data: bookmarks, error } = await supabase
+            .from('bookmarks')
+            .select('movie_id')
+          if (error) throw error
+
+          bookmarks.forEach((b) => {
+            if (!this.bookmarks[b.movie_id]) {
+              this.$store.commit('movie/SET_BOOKMARK', {
+                movieId: b.movie_id,
+                value: true,
+              })
+            }
+          })
+        } catch (err) {
+          console.error('Ошибка при загрузке закладок:', err.message)
         }
-
-        const bookmarked = movies.filter(isLikedOrBookmarked)
-
-        const extractUnique = (key) => [
-          ...new Set(
-            bookmarked.flatMap((m) =>
-              (Array.isArray(m[key]) ? m[key] : [m[key]]).filter(Boolean)
-            )
-          ),
-        ]
-
-        const genres = extractUnique('genres')
-        const countries = extractUnique('country')
-        const actors = [
-          ...new Set(
-            bookmarked.flatMap((m) => (m.cast || []).map((a) => a.name))
-          ),
-        ]
-
-        const groupBy = (list, keyGetter) =>
-          list.reduce((acc, item) => {
-            const keys = keyGetter(item)
-            keys.forEach((key) => {
-              if (!acc[key]) acc[key] = []
-              acc[key].push(item)
-            })
-            return acc
-          }, {})
-
-        const groupGenres = groupBy(movies, (m) => m.genres || [])
-        const groupCountries = groupBy(movies, (m) =>
-          [m.country].filter(Boolean)
-        )
-        const groupActors = groupBy(movies, (m) =>
-          (m.cast || []).map((a) => a.name)
-        )
-
-        const rankAndCollect = (items, group) =>
-          items
-            .sort((a, b) => (group[b]?.length || 0) - (group[a]?.length || 0))
-            .flatMap((item) => group[item] || [])
-
-        const result = [
-          ...rankAndCollect(genres, groupGenres),
-          ...rankAndCollect(countries, groupCountries),
-          ...rankAndCollect(actors, groupActors),
-        ]
-
-        const unique = Array.from(
-          new Map(result.map((m) => [m.id, m])).values()
-        )
-
-        return unique.slice(0, 10)
       },
+
+      async loadRatedMovies() {
+        try {
+          const { data: ratings, error } = await supabase
+            .from('ratings')
+            .select('movie_id, rating')
+          if (error) throw error
+          if (!ratings?.length) return
+
+          const movies = await Promise.all(
+            ratings.map((r) => this.fetchMovieById(r.movie_id))
+          )
+
+          this.ratedMovies = movies
+            .map((movie) => {
+              const found = ratings.find((r) => r.movie_id === movie.id)
+              return found
+                ? { ...movie, rating: Number(found.rating) || 0 }
+                : null
+            })
+            .filter(Boolean)
+        } catch (err) {
+          console.error('Ошибка при загрузке оценённых фильмов:', err.message)
+        }
+      },
+
+      async loadRecommended() {
+        try {
+          // 1. Собираем фильмы, которые пользователь лайкнул или оценил
+          const seenIds = new Set([
+            ...Object.keys(this.bookmarks).filter((id) => this.bookmarks[id]),
+            ...this.ratedMovies.map((m) => m.id),
+          ])
+
+          const seenMovies = this.movies.filter((m) => seenIds.has(m.id))
+
+          // 2. Предпочтения пользователя
+          const preferredGenres = new Set(
+            seenMovies.flatMap((m) => m.genres || [])
+          )
+          const preferredCountries = new Set(
+            seenMovies.map((m) => m.country).filter(Boolean)
+          )
+          const preferredActors = new Set(
+            seenMovies.flatMap((m) => (m.cast || []).map((a) => a.name))
+          )
+
+          // 3. Вычисляем "сходство"
+          const scoredMovies = this.movies
+            .filter((m) => !seenIds.has(m.id))
+            .map((m) => {
+              let score = 0
+
+              // Жанры
+              ;(m.genres || []).forEach((g) => {
+                if (preferredGenres.has(g)) score += 3
+              })
+
+              // Страна
+              if (m.country && preferredCountries.has(m.country)) {
+                score += 2
+              }
+
+              // Актёры
+              (m.cast || []).forEach((a) => {
+                if (preferredActors.has(a.name)) score += 1
+              })
+
+              return { ...m, score }
+            })
+            .sort((a, b) => b.score - a.score)
+
+          this.recommendedMovies = scoredMovies.slice(0, 10)
+        } catch (err) {
+          console.error('Ошибка загрузки рекомендуемых фильмов:', err.message)
+        } finally {
+          this.isLoading = false
+        }
+      },
+    },
+
+    watch: {
+      bookmarks: {
+        handler() {
+          this.loadRecommended()
+        },
+        deep: true,
+      },
+      ratedMovies: {
+        handler() {
+          this.loadRecommended()
+        },
+        deep: true,
+      },
+      movies: {
+        handler() {
+          this.loadRecommended()
+        },
+        deep: true,
+      },
+    },
+
+    async created() {
+      await this.fetchMovies()
+      await this.loadBookmarkedMovies()
+      await this.loadRatedMovies()
+      await this.loadRecommended()
     },
   }
 </script>

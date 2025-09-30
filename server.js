@@ -1,31 +1,34 @@
 const express = require('express');
-const cors = require('cors'); // Подключите cors
+const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+const moviesRouter = require('./routes/serverMovie');
+
 const app = express();
 const port = 3001;
 
-const movies = require('./src/components/kinopoisk.json'); // Подключаем файл с данными фильмов
-
-app.use(cors()); // Используйте cors middleware
+app.use(cors());
 app.use(express.json());
 
-// Получить список всех фильмов
-app.get('/movies', (req, res) => {
-  res.json(movies);
-});
+// Swagger config
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Movies API',
+      version: '1.0.0',
+      description: 'Документация для API фильмов',
+    },
+  },
+  apis: ['./routes/*.js'],
+};
 
-// Получить информацию о фильме по идентификатору
-app.get('/movies/:id', (req, res) => {
-  const movieId = req.params.id;
-  const movie = movies.find((movie) => movie.id === movieId);
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-  if (movie) {
-    res.json(movie);
-  } else {
-    res.status(404).json({ error: 'Фильм не найден' });
-  }
-});
+app.use('/movies', moviesRouter);
 
-// Запустить сервер
 app.listen(port, () => {
-  console.log(`Сервер запущен на порту ${port}`);
+  console.log(`🚀 Сервер запущен на http://localhost:${port}`);
+  console.log(`📄 Swagger доступен на http://localhost:${port}/api-docs`);
 });
