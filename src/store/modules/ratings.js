@@ -4,84 +4,85 @@ export default {
     namespaced: true,
     state: {
         ratings: {}, // { movieId: rating }
+        ratedMovies: [], // [{ movie, rating }]
     },
     mutations: {
-        SET_RATING(state, { movieId, rating }) {
-            state.ratings = { ...state.ratings, [movieId]: rating }
+        SET_RATINGS(state, ratedMovies) {
+            state.ratedMovies = ratedMovies
+            state.ratings = ratedMovies.reduce((acc, { movie, rating }) => {
+                acc[movie.id] = rating
+                return acc
+            }, {})
         },
-        SET_RATINGS(state, ratings) {
-            state.ratings = ratings
+        UPDATE_RATING(state, { movieId, rating }) {
+            const movie = state.ratedMovies.find(m => m.movie.id === movieId)
+            if (movie) {
+                movie.rating = rating
+            } else {
+                // если фильм ещё не был в ratedMovies, добавляем его
+                state.ratedMovies.push({ movie: { id: movieId }, rating })
+            }
+            state.ratings[movieId] = rating
         },
         REMOVE_RATING(state, movieId) {
-            const newRatings = { ...state.ratings }
-            delete newRatings[movieId]
-            state.ratings = newRatings
+            state.ratedMovies = state.ratedMovies.filter(r => r.movie.id !== movieId)
+            delete state.ratings[movieId]
         },
     },
     actions: {
-        // загрузка всех рейтингов из БД
-        async loadRatings({ commit }) {
+        async loadRatings({ commit, dispatch }) {
             try {
-                const { data, error } = await supabase
+                const { data: ratings, error } = await supabase
                     .from('ratings')
                     .select('movie_id, rating')
-
                 if (error) throw error
 
-                if (data) {
-                    const ratingsMap = {}
-                    data.forEach(({ movie_id, rating }) => {
-                        ratingsMap[movie_id] = rating
-                    })
-                    commit('SET_RATINGS', ratingsMap)
+                if (!ratings?.length) {
+                    commit('SET_RATINGS', [])
+                    return
                 }
+
+                // Загружаем фильмы по ID
+                const movies = await Promise.all(
+                    ratings.map(r =>
+                        dispatch('movie/fetchMovieById', r.movie_id, { root: true }).then(movie => ({
+                            movie,
+                            rating: Number(r.rating) || 0
+                        }))
+                    )
+                )
+
+                commit('SET_RATINGS', movies)
             } catch (err) {
-                console.error('Ошибка загрузки всех рейтингов:', err.message)
+                console.error('Ошибка загрузки оценок:', err.message)
             }
         },
 
-        // загрузка рейтинга одного фильма
-        async loadRating({ commit }, movieId) {
-            try {
-                const { data, error } = await supabase
-                    .from('ratings')
-                    .select('rating')
-                    .eq('movie_id', movieId)
-                    .single()
-
-                if (error && error.code !== 'PGRST116') throw error
-                if (data) {
-                    commit('SET_RATING', { movieId, rating: data.rating })
-                }
-            } catch (err) {
-                console.error('Ошибка загрузки рейтинга:', err.message)
-            }
-        },
-
-        // сохранить или обновить рейтинг
         async saveRating({ commit }, { movieId, rating }) {
             try {
                 const { data, error } = await supabase
                     .from('ratings')
-                    .upsert({ movie_id: movieId, rating })
+                    .upsert(
+                        { movie_id: movieId, rating },
+                        { onConflict: 'movie_id' } // ⚠️ ключ для обновления
+                      )
+                    
                     .select()
                     .single()
-
                 if (error) throw error
-                commit('SET_RATING', { movieId, rating: data.rating })
+
+                commit('UPDATE_RATING', { movieId, rating: data.rating })
             } catch (err) {
                 console.error('Ошибка сохранения рейтинга:', err.message)
             }
         },
 
-        // удалить рейтинг
         async deleteRating({ commit }, movieId) {
             try {
                 const { error } = await supabase
                     .from('ratings')
                     .delete()
                     .eq('movie_id', movieId)
-
                 if (error) throw error
                 commit('REMOVE_RATING', movieId)
             } catch (err) {
@@ -90,13 +91,6 @@ export default {
         },
     },
     getters: {
-        ratedMovies: (state, getters, rootState) => {
-            return rootState.movie.movies
-                .map((m) => ({
-                    ...m,
-                    rating: state.ratings[m.id] || null,
-                }))
-                .filter((m) => m.rating !== null)
-        },
+        ratedMovies: (state) => state.ratedMovies,
     },
 }

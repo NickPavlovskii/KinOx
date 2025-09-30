@@ -1,153 +1,114 @@
 <template>
-  <section
-    v-if="ratedMovies.length > 0"
-    class="like saved-movies__section saved-movies__section--rated"
-  >
-    <div class="saved-movies__title-wrapper">
-      <h2 class="saved-movies__title">
-        <font-awesome-icon icon="fa-solid fa-star" />
-        Оцененные фильмы
-      </h2>
+  <section>
+    <div v-if="isLoading" class="loader">
+      <Kinox-loader />
     </div>
-    <table
-      class="table"
-      style="margin: auto"
-    >
-      <tbody>
-        <tr
-          v-for="movie in paginatedRatedMovies"
-          :key="movie.id"
-          class="saved-movies__row"
-        >
-          <td>
-            {{ console.log(movie) }}
-            <kinox-movie-card
-              :movie="movie"
-              style="width: 250px"
-            />
-          </td>
-          <td class="Rating saved-movies__cell saved-movies__cell--rating">
-            <div class="saved-movies__rating-block">
-              <Rating
-                v-model="movie.ratings"
-                class="saved-movies__rating custom-rating"
-                :stars="10"
-                :cancel="false"
-                :readonly="true"
-              />
-              <img
-                class="saved-movies__rating-cancel"
-                src="https://primefaces.org/cdn/primevue/images/rating/cancel.png"
-                height="24"
-                width="24"
-                @click="removeRating(movie.id)"
-              />
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="saved-movies__pagination pagination">
-      <Paginator
-        v-model:first="currentPage"
-        :rows="moviesPerPage"
-        :totalRecords="ratedMovies.length"
-      />
+
+    <div v-else-if="ratedMovies.length > 0" class="like saved-movies__section saved-movies__section--rated">
+      <div class="saved-movies__title-wrapper">
+        <h2 class="saved-movies__title">
+          <font-awesome-icon icon="fa-solid fa-star" />
+          Оцененные фильмы
+        </h2>
+      </div>
+
+      <table class="table" style="margin: auto">
+        <tbody>
+          <tr v-for="item in paginatedRatedMovies" :key="item.movie.id" class="saved-movies__row">
+            <td>
+              <kinox-movie-card :movie="item.movie" style="width: 250px" />
+            </td>
+            <td class="Rating saved-movies__cell saved-movies__cell--rating">
+              <div class="saved-movies__rating-block">
+                <Rating v-model="item.rating" class="saved-movies__rating custom-rating" :stars="10" :cancel="false" :readonly="true" />
+                <img
+                  class="saved-movies__rating-cancel"
+                  src="https://primefaces.org/cdn/primevue/images/rating/cancel.png"
+                  height="24"
+                  width="24"
+                  @click="removeRating(item.movie.id)"
+                />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="saved-movies__pagination pagination">
+        <Paginator v-model:first="currentPage" :rows="moviesPerPage" :totalRecords="ratedMovies.length" />
+      </div>
+    </div>
+
+    <div v-else>
+      <p>Нет оцененных фильмов.</p>
     </div>
   </section>
 </template>
 
 <script>
-  import Paginator from 'primevue/paginator'
-  import Rating from 'primevue/rating'
-  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-  import { supabase } from '@/supabase'
-  import { mapActions } from 'vuex'
+import Paginator from 'primevue/paginator'
+import Rating from 'primevue/rating'
+import { mapActions, mapGetters } from 'vuex'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-  export default {
-    name: 'RatedMovies',
-    components: {
-      Paginator,
-      Rating,
-      FontAwesomeIcon,
-    },
-    props: {
-      moviesPerPage: {
-        type: Number,
-        default: 6,
-      },
-    },
-    data() {
-      return {
-        currentPage: 0,
-        ratedMovies: [], // список фильмов с оценками
-        isLoading: true,
+export default {
+  name: 'RatedMovies',
+  components: { Paginator, Rating, FontAwesomeIcon },
+  props: { moviesPerPage: { type: Number, default: 6 } },
+  data() {
+    return { currentPage: 0, isLoading: true }
+  },
+  computed: {
+    ...mapGetters('ratings', ['ratedMovies']),
+    paginatedRatedMovies() {
+      const start = this.currentPage * this.moviesPerPage
+      return this.ratedMovies.slice(start, start + this.moviesPerPage)
+    }
+  },
+  methods: {
+    ...mapActions('ratings', ['loadRatings', 'saveRating', 'deleteRating']),
+    ...mapActions('movie', ['fetchMovieById']),
+
+    async fetchRatings() {
+      this.isLoading = true
+      try {
+        await this.loadRatings()
+        this.ratedMovies.forEach(r => {
+          if (r.userRatingReactive === undefined) r.userRatingReactive = r.rating
+        })
+        const moviesWithDetails = await Promise.all(
+          this.ratedMovies.map(async r => {
+            const movie = await this.$store.dispatch('movie/fetchMovieById', r.movie.id)
+            return { ...r, movie }
+          })
+        )
+        this.ratedMovies.splice(0, this.ratedMovies.length, ...moviesWithDetails)
+      } catch (err) {
+        console.error('Ошибка загрузки рейтингов:', err)
+      } finally {
+        this.isLoading = false
       }
     },
-    computed: {
-      paginatedRatedMovies() {
-        const start = this.currentPage * this.moviesPerPage
-        return this.ratedMovies.slice(start, start + this.moviesPerPage)
-      },
+
+    updateRating(movieId, value) {
+      this.saveRating({ movieId, rating: value })
+      const item = this.ratedMovies.find(m => m.movie.id === movieId)
+      if (item) item.userRatingReactive = value
     },
-    methods: {
-      ...mapActions('movie', ['fetchMovieById', 'deleteRating']),
 
-      async loadRatedMovies() {
-        try {
-          // 1. Получаем ID фильмов с оценками
-          const { data: ratings, error } = await supabase
-            .from('ratings')
-            .select('movie_id, rating')
+    removeRating(movieId) {
+      this.deleteRating(movieId)
+      const index = this.ratedMovies.findIndex(m => m.movie.id === movieId)
+      if (index !== -1) this.ratedMovies.splice(index, 1)
+    }
+  },
 
-          if (error) throw error
-
-          if (!ratings?.length) {
-            this.ratedMovies = []
-            return
-          }
-
-          const movieIds = ratings.map((r) => r.movie_id)
-
-          // 2. Параллельная загрузка фильмов
-          const movies = await Promise.all(
-            movieIds.map((id) => this.fetchMovieById(id))
-          )
-
-          // 3. Объединяем с оценками
-          this.ratedMovies = movies
-            .map((movie) => {
-              const found = ratings.find((r) => r.movie_id === movie.id)
-              return found
-                ? { ...movie, ratings: Number(found.rating) || 0 }
-                : null
-            })
-            .filter(Boolean)
-
-          console.log('ratedMovies:', this.ratedMovies)
-        } catch (err) {
-          console.error('Ошибка при загрузке оценённых фильмов:', err.message)
-        } finally {
-          this.isLoading = false
-        }
-      },
-
-      async removeRating(movieId) {
-        try {
-          // Вызов экшена с namespace
-          await this.$store.dispatch('ratings/deleteRating', movieId)
-          // Обновляем локальный массив
-          this.ratedMovies = this.ratedMovies.filter((m) => m.id !== movieId)
-        } catch (err) {
-          console.error('Ошибка при удалении рейтинга:', err.message)
-        }
-      },
-    },
-    created() {
-      this.loadRatedMovies()
-    },
+  async created() {
+    await this.fetchRatings()
   }
+}
 </script>
+
 
 <style scoped>
   .saved-movies__card-item {
