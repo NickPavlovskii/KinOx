@@ -1,18 +1,21 @@
 <template>
   <div class="container">
     <div class="movie-list saved-movies__list">
+      <!-- Закладки -->
       <bookmarked-movies
         v-if="bookmarkedMovies.length"
- 
         :moviesPerPage="moviesPerPage"
       />
+
+      <!-- Разделитель -->
       <clapperboard-icon
         v-if="ratedMovies.length && bookmarkedMovies.length"
         class="saved-movies__divider"
       />
+
+      <!-- Оценённые -->
       <rated-movies
         v-if="ratedMovies.length > 0"
-        
         :moviesPerPage="moviesPerPage"
         @remove-rating="removeRating"
       />
@@ -21,60 +24,57 @@
 </template>
 
 <script>
-  import { mapState } from 'vuex'
-  import ClapperboardIcon from '@/components/main/ClapperboardIcon.vue'
-  import BookmarkedMovies from '@/components/LikePage/BookmarkedMovies.vue'
-  import RatedMovies from '@/components/LikePage/RatedMovies.vue'
-  import { library } from '@fortawesome/fontawesome-svg-core'
-  import { faFilm, faStar } from '@fortawesome/free-solid-svg-icons'
-  library.add(faFilm, faStar)
-  export default {
-    components: {
-      ClapperboardIcon,
-      BookmarkedMovies,
-      RatedMovies,
-    },
-    data() {
-      return {
-        moviesPerPage: 6,
-      }
-    },
-    computed: {
-      ...mapState({
-        allMovies: (state) => state.movie.movies,
-        bookmarks: (state) => state.bookmarks.bookmarks,
-      }),
+import { mapState, mapActions, mapGetters } from 'vuex'
+import ClapperboardIcon from '@/components/main/ClapperboardIcon.vue'
+import BookmarkedMovies from '@/components/LikePage/BookmarkedMovies.vue'
+import RatedMovies from '@/components/LikePage/RatedMovies.vue'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faFilm, faStar } from '@fortawesome/free-solid-svg-icons'
 
-      bookmarkedMovies() {
-        return this.allMovies.filter((movie) =>
-          this.bookmarks.includes(movie.id)
-        )
-      },
+library.add(faFilm, faStar)
 
-      ratedMovies() {
-        return this.allMovies
-          .filter((movie) => {
-            const ratingKey = `rating_${movie.id}`
-            return localStorage.getItem(ratingKey) !== null
-          })
-          .map((movie) => ({
-            ...movie,
-            like: parseInt(localStorage.getItem(`rating_${movie.id}`)),
-          }))
-      },
+export default {
+  name: 'SavedMovies',
+
+  components: {
+    ClapperboardIcon,
+    BookmarkedMovies,
+    RatedMovies,
+  },
+
+  data() {
+    return {
+      moviesPerPage: 6,
+    }
+  },
+
+  computed: {
+    ...mapState({
+      allMovies: (state) => state.movie.movies,
+      bookmarks: (state) => state.bookmarks.bookmarks,
+      ratedMovies: (state) => state.ratings.ratedMovies, // ⚡️ оценки теперь из стора
+    }),
+    ...mapGetters('ratings', ['ratedMovies']),
+    bookmarkedMovies() {
+      return this.allMovies.filter((movie) =>
+        this.bookmarks.includes(movie.id)
+      )
     },
-    methods: {
-      removeRating(movieId) {
-        localStorage.removeItem(`rating_${movieId}`)
-        this.$forceUpdate()
-      },
-    },
-    created() {
-      this.$store.dispatch('fetchMovies')
-      this.$store.dispatch('bookmarks/loadBookmarks')
-    },
-  }
+  },
+
+  methods: {
+    ...mapActions('ratings', ['removeRating', 'loadRatings']),
+  },
+
+  async created() {
+    // ⚡️ сначала грузим фильмы, потом закладки и оценки
+    await this.$store.dispatch('fetchMovies')
+    await this.$store.dispatch('bookmarks/loadBookmarks')
+    await this.loadRatings()
+  },
+}
 </script>
+
 
 <style>
   .saved-movies {
