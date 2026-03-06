@@ -2,7 +2,6 @@
   <div id="app">
     <div class="layout">
       <MainHeader @search="updateSearchQuery" />
-
       <router-view />
       <Kinox-notification />
       <MainFooter />
@@ -15,7 +14,7 @@
   import MainHeader from './components/header/MainHeader.vue'
   import MainFooter from './components/footer/MainFooter.vue'
 
-  import { mapState, mapActions } from 'vuex'
+  import { mapState } from 'vuex'
 
   export default {
     name: 'App',
@@ -24,7 +23,7 @@
       MainFooter,
     },
     computed: {
-      ...mapState(['movie', 'movies', 'filteredMovies']),
+      ...mapState('movie', ['movies', 'filteredMovies']),
     },
     data() {
       return {
@@ -32,16 +31,18 @@
         totalPages: 1,
       }
     },
+    created() {
+      this.$store.dispatch('bookmarks/loadBookmarks')
+      this.$store.dispatch('ratings/loadRatings')
+    },
     methods: {
-      ...mapActions(['movie', 'fetchMovies', 'selectMovie', 'searchMovies']),
-
       changePage(page) {
         this.currentPage = page
       },
       updateSearchQuery(query) {
-        this.$store.commit('setSearchQuery', query)
+        this.$store.commit('movie/setSearchQuery', query)
         this.currentPage = 1
-        this.searchMovies()
+        this.$store.dispatch('movie/searchMovies')
       },
     },
   }

@@ -45,7 +45,7 @@
               <font-awesome-icon icon="clock" />
             </span>
             <span class="movie-info__text">
-              {{ convertMinutesToHours(movie.movieLength) }}
+              {{ formatDuration(movie.movieLength) }}
             </span>
           </div>
           <div class="movie-info__info-item">
@@ -118,6 +118,7 @@
   import { library } from '@fortawesome/fontawesome-svg-core'
   import { faImdb } from '@fortawesome/free-brands-svg-icons'
   import MovieWatchability from './MovieWatchability.vue'
+  import { formatDuration } from '@/utils/format'
 
   library.add(faImdb)
 
@@ -132,11 +133,7 @@
       movie: Object,
     },
     methods: {
-      convertMinutesToHours(minutes) {
-        const hours = Math.floor(minutes / 60)
-        const remaining = minutes % 60
-        return `${hours}ч ${remaining}м`
-      },
+      formatDuration,
     },
   }
 </script>

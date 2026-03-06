@@ -57,17 +57,19 @@
     },
     computed: {
       ...mapState('bookmarks', ['bookmarks']),
+      ...mapState('ratings', ['ratings']),
       isBookmarked() {
         return (
           Array.isArray(this.bookmarks) && this.bookmarks.includes(this.movieId)
         )
       },
-      ratingKey() {
-        return `rating_${this.movieId}`
+      savedRating() {
+        return this.ratings[this.movieId] ?? 0
       },
     },
     methods: {
       ...mapActions('bookmarks', ['toggleBookmark', 'loadBookmarks']),
+      ...mapActions('ratings', ['setRating', 'loadRatings']),
       toggleBookmarkAction() {
         const wasBookmarked = this.isBookmarked
         this.toggleBookmark(this.movieId).then(() => {
@@ -80,9 +82,8 @@
           })
         })
       },
-
       saveRating() {
-        localStorage.setItem(this.ratingKey, this.rating.toString())
+        this.setRating({ movieId: this.movieId, value: this.rating })
       },
       resetRating() {
         this.rating = 0
@@ -91,11 +92,9 @@
     },
     created() {
       this.loadBookmarks()
-
-      const savedRating = localStorage.getItem(this.ratingKey)
-      if (savedRating) {
-        this.rating = parseInt(savedRating)
-      }
+      this.loadRatings()
+      const r = this.$store.state.ratings?.ratings?.[this.movieId]
+      if (r !== undefined && r > 0) this.rating = r
     },
   }
 </script>

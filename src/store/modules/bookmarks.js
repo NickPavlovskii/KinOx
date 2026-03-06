@@ -18,24 +18,39 @@ export default {
   },
   actions: {
     loadBookmarks({ commit }) {
-      const saved = localStorage.getItem('bookmarks')
-      const bookmarks = saved ? JSON.parse(saved) : []
-      commit('SET_BOOKMARKS', bookmarks)
+      try {
+        let saved = localStorage.getItem('kinox_bookmarks')
+        if (!saved) {
+          const legacy = localStorage.getItem('bookmarks')
+          if (legacy) {
+            const data = JSON.parse(legacy)
+            if (Array.isArray(data)) {
+              localStorage.setItem('kinox_bookmarks', legacy)
+              saved = legacy
+            }
+          }
+        }
+        const bookmarks = saved ? JSON.parse(saved) : []
+        commit('SET_BOOKMARKS', Array.isArray(bookmarks) ? bookmarks : [])
+      } catch {
+        commit('SET_BOOKMARKS', [])
+      }
     },
     toggleBookmark({ commit, state }, movieId) {
       const isBookmarked = state.bookmarks.includes(movieId)
-      console.log(isBookmarked)
-      let updatedBookmarks
-
       if (isBookmarked) {
         commit('REMOVE_BOOKMARK', movieId)
-        updatedBookmarks = state.bookmarks.filter(id => id !== movieId)
       } else {
         commit('ADD_BOOKMARK', movieId)
-        updatedBookmarks = [...state.bookmarks, movieId]
       }
-
-      localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks))
+      try {
+        localStorage.setItem(
+          'kinox_bookmarks',
+          JSON.stringify(state.bookmarks)
+        )
+      } catch (e) {
+        console.warn('KinOx: не удалось сохранить закладки', e)
+      }
     },
   },
 }

@@ -44,6 +44,7 @@
         allMovies: (state) => state.movie.movies,
         bookmarks: (state) => state.bookmarks.bookmarks,
       }),
+      ...mapState('ratings', ['ratings']),
 
       bookmarkedMovies() {
         return this.allMovies.filter((movie) =>
@@ -53,25 +54,22 @@
 
       ratedMovies() {
         return this.allMovies
-          .filter((movie) => {
-            const ratingKey = `rating_${movie.id}`
-            return localStorage.getItem(ratingKey) !== null
-          })
+          .filter((movie) => this.ratings[movie.id] !== undefined && this.ratings[movie.id] > 0)
           .map((movie) => ({
             ...movie,
-            like: parseInt(localStorage.getItem(`rating_${movie.id}`)),
+            like: this.ratings[movie.id],
           }))
       },
     },
     methods: {
       removeRating(movieId) {
-        localStorage.removeItem(`rating_${movieId}`)
-        this.$forceUpdate()
+        this.$store.dispatch('ratings/removeRating', movieId)
       },
     },
     created() {
-      this.$store.dispatch('fetchMovies')
+      this.$store.dispatch('movie/fetchMovie')
       this.$store.dispatch('bookmarks/loadBookmarks')
+      this.$store.dispatch('ratings/loadRatings')
     },
   }
 </script>

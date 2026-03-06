@@ -17,15 +17,17 @@
   export default {
     components: {},
     computed: {
-      ...mapState(['movie']),
+      ...mapState('movie', ['movies']),
+      ...mapState('bookmarks', ['bookmarks']),
+      ...mapState('ratings', ['ratings']),
       recommendedMovies() {
-        const { movies } = this.movie
+        const movies = this.movies
         if (!Array.isArray(movies)) return []
 
         const isLikedOrBookmarked = (movie) => {
           return (
-            localStorage.getItem(`bookmark_${movie.id}`) === 'true' ||
-            localStorage.getItem(`like_${movie.id}`) === 'true'
+            (Array.isArray(this.bookmarks) && this.bookmarks.includes(movie.id)) ||
+            (this.ratings[movie.id] !== undefined && this.ratings[movie.id] > 0)
           )
         }
 

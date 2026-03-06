@@ -12,7 +12,7 @@
         />
 
         <img
-          v-show="true"
+          v-show="imageLoaded"
           :src="movie.poster?.url || ''"
           alt="Постер фильма"
           class="poster-image"
@@ -29,7 +29,7 @@
                     <font-awesome-icon icon="clock" />
                   </span>
                   <span class="text">
-                    {{ convertMinutesToHours(movie.movieLength) }}
+                    {{ formatDuration(movie.movieLength) }}
                   </span>
                 </div>
                 <div class="infoItem">
@@ -48,7 +48,6 @@
         <circle-progress
           class="circle_progress"
           :viewport="true"
-          :on-viewport="movie.rating.kp.toFixed(1)"
           :size="60"
           :background="'white'"
           :is-gradient="true"
@@ -59,7 +58,7 @@
           :border-width="5"
           :border-bg-width="5"
         />
-        <span class="ratingtext">{{ movie.rating.kp.toFixed(1) }}</span>
+        <span class="ratingtext">{{ formatRating(movie.rating?.kp) }}</span>
         <h3 class="movie-name">{{ movie.name }}</h3>
         <div class="year">{{ movie.year }}</div>
       </div>
@@ -73,6 +72,7 @@
   import { library } from '@fortawesome/fontawesome-svg-core'
   import { faBookmark, faHeart } from '@fortawesome/free-solid-svg-icons'
   import CircleProgress from 'vue3-circle-progress'
+  import { formatDuration, formatRating } from '@/utils/format'
   library.add(faBookmark)
   library.add(faHeart)
 
@@ -108,19 +108,18 @@
       }
     },
     created() {
-      const bookmarkKey = `bookmark_${this.movie.id}`
-      const ratingKey = `rating_${this.movie.id}`
-
-      if (localStorage.getItem(bookmarkKey) === 'true') {
-        this.isBookmarked = true
-      }
-
-      if (localStorage.getItem(ratingKey) === 'true') {
-        this.hasRating = true
-      }
+      if (!this.movie.poster?.url) this.imageLoaded = true
     },
     computed: {
-      ...mapState(['movie']),
+      ...mapState('bookmarks', ['bookmarks']),
+      ...mapState('ratings', ['ratings']),
+      isBookmarked() {
+        return Array.isArray(this.bookmarks) && this.bookmarks.includes(this.movie.id)
+      },
+      hasRating() {
+        const r = this.ratings[this.movie.id]
+        return r !== undefined && r > 0
+      },
     },
 
     methods: {
@@ -129,12 +128,10 @@
       },
       onImageError() {
         console.error('Ошибка загрузки изображения:', this.movie.poster?.url)
+        this.imageLoaded = true
       },
-      convertMinutesToHours(minutes) {
-        const hours = Math.floor(minutes / 60)
-        const remainingMinutes = minutes % 60
-        return `${hours}h ${remainingMinutes}min`
-      },
+      formatDuration,
+      formatRating,
     },
   }
 </script>

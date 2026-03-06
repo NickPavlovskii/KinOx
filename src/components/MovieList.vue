@@ -110,7 +110,8 @@
       },
 
       totalPages() {
-        return Math.ceil(this.totalMovies / this.movie.itemsPerPage)
+        const perPage = this.movie?.itemsPerPage ?? 21
+        return Math.max(1, Math.ceil(this.totalMovies / perPage))
       },
       currentMovies() {
         const source = this.isHomePage
@@ -126,15 +127,20 @@
         )
       },
       totalMovies() {
-        return this.isHomePage
-          ? this.movie.movies.length
-          : this.filteredSortedMovies.length
+        if (this.isHomePage) {
+          const movies = this.movie?.movies
+          return Array.isArray(movies) ? movies.length : 0
+        }
+        return this.filteredSortedMovies.length
       },
     },
 
     methods: {
-      ...mapActions(['fetchMovies', 'searchMovies', 'updateSortOrder']),
+      ...mapActions('movie', ['searchMovies']),
       ...mapMutations(['updateSelectedSortOption', 'SET_SORT_ORDER']),
+      fetchMovies() {
+        return this.$store.dispatch('movie/fetchMovie')
+      },
 
       toggleSortOrder() {
         const newOrder = this.sortOrder === 'asc' ? 'desc' : 'asc'

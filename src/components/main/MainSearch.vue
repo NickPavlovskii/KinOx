@@ -27,8 +27,8 @@
       }
     },
     methods: {
-      ...mapActions(['searchMovies']),
-      ...mapMutations(['setSearchQuery']),
+      ...mapActions('movie', ['searchMovies']),
+      ...mapMutations('movie', ['setSearchQuery']),
 
       handleInput() {
         this.setSearchQuery(this.searchQuery)

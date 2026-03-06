@@ -3,18 +3,23 @@
     class="movie"
     :to="{ name: 'movie-details', params: { id: movie.id } }"
   >
-    <div class="movie-poster">
+    <div class="movie-poster poster-wrap">
+      <div
+        v-show="!posterLoaded"
+        class="poster-skeleton"
+      />
       <img
+        v-show="posterLoaded"
         alt="Постер фильма"
         class="poster-image"
-        :src="movie.poster.url"
+        :src="movie.poster?.url"
+        @load="posterLoaded = true"
       />
       <div class="movie-details">
         <circle-progress
           class="circle_progress"
           :percent="movie.rating.kp * 10"
           :viewport="true"
-          :on-viewport="movie.rating.kp.toFixed(1)"
           :size="60"
           :background="'white'"
           :is-gradient="true"
@@ -31,7 +36,7 @@
           :border-width="5"
           :border-bg-width="5"
         />
-        <span class="ratingtext">{{ movie.rating.kp.toFixed(1) }}</span>
+        <span class="ratingtext">{{ formatRating(movie.rating?.kp) }}</span>
       </div>
     </div>
     <div class="movie-info">
@@ -45,7 +50,7 @@
         </span>
         <span>
           <font-awesome-icon icon="clock" />
-          {{ convertMinutesToHours(movie.movieLength) }}
+          {{ formatDuration(movie.movieLength) }}
         </span>
         <span>
           <font-awesome-icon icon="calendar-days" />
@@ -66,6 +71,7 @@
 <script>
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
   import CircleProgress from 'vue3-circle-progress'
+  import { formatDuration, formatRating } from '@/utils/format'
 
   export default {
     name: 'MovieCardFull',
@@ -76,12 +82,17 @@
         required: true,
       },
     },
+    data() {
+      return {
+        posterLoaded: false,
+      }
+    },
+    created() {
+      if (!this.movie.poster?.url) this.posterLoaded = true
+    },
     methods: {
-      convertMinutesToHours(minutes) {
-        const hours = Math.floor(minutes / 60)
-        const remainingMinutes = minutes % 60
-        return `${hours}h ${remainingMinutes}min`
-      },
+      formatDuration,
+      formatRating,
     },
   }
 </script>
@@ -100,15 +111,42 @@
     }
   }
 
-  .movie-poster {
+  .movie-poster.poster-wrap {
+    position: relative;
     text-align: center;
     border-radius: 8px;
     margin-right: 30px;
   }
 
+  .poster-skeleton {
+    position: absolute;
+    inset: 0;
+    min-height: 220px;
+    max-width: 150px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    border-radius: 11px;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.06) 25%,
+      rgba(255, 255, 255, 0.12) 50%,
+      rgba(255, 255, 255, 0.06) 75%
+    );
+    background-size: 200% 100%;
+    animation: card-skeleton-shine 1.2s ease-in-out infinite;
+  }
+
   .poster-image {
+    position: relative;
     max-width: 150px;
     border-radius: 11px;
+  }
+
+  @keyframes card-skeleton-shine {
+    to {
+      background-position: 200% 0;
+    }
   }
 
   @media (max-width: 768px) {

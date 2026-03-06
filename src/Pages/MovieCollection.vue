@@ -69,7 +69,7 @@
 </template>
 
 <script>
-  import { mapState, mapGetters, mapMutations, mapActions } from 'vuex'
+  import { mapState, mapGetters, mapMutations } from 'vuex'
 
   import MovieCardFull from '@/components/MovieCardFull.vue'
   import Dropdown from 'primevue/dropdown'
@@ -113,7 +113,7 @@
     },
     computed: {
       ...mapState(['movie', 'sorting']),
-      ...mapGetters(['getMovieById']),
+      ...mapGetters('movie', ['getMovieById']),
 
       sortOrder() {
         return this.sorting.sortOrder
@@ -131,13 +131,15 @@
       },
 
       filteredMovies() {
+        const movies = this.movie?.movies
+        if (!Array.isArray(movies)) return []
         const path = this.$route.path.slice(1)
-        return this.movie.movies.filter((movie) => {
+        return movies.filter((movie) => {
           if (path === 'movie') return movie.type === 'movie'
           if (path === 'cartoon')
             return ['cartoon', 'animated-series'].includes(movie.type)
           if (path === 'tv-series') return movie.type === 'tv-series'
-          return movie.genres.includes(path)
+          return Array.isArray(movie.genres) && movie.genres.includes(path)
         })
       },
 
@@ -177,14 +179,16 @@
     },
     methods: {
       ...mapMutations(['updateSelectedSortOption', 'SET_SORT_ORDER']),
-      ...mapActions(['fetchMovies', 'updateSortOrder']),
+      fetchMovies() {
+        return this.$store.dispatch('movie/fetchMovie')
+      },
 
       onSortOptionChange() {
-        this.currentPage = 0
+        this.first = 0
       },
       updateSortOrder(order) {
         this.SET_SORT_ORDER(order)
-        this.currentPage = 0
+        this.first = 0
       },
       getPropertyValue(obj, path) {
         return path.split('.').reduce((o, p) => (o ? o[p] : null), obj)

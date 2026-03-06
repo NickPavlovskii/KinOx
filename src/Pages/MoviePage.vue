@@ -1,28 +1,41 @@
 <template>
   <div class="container">
-    <div class="detailsBanner">
+    <div
+      v-if="movieData.id"
+      class="detailsBanner"
+    >
       <div class="backdrop-img">
-        <div class="lazy-load-image-background">
+        <div class="lazy-load-image-background img-wrap">
+          <div
+            v-show="!backdropLoaded"
+            class="img-skeleton backdrop-skeleton"
+          />
           <img
+            v-show="backdropLoaded"
             alt="Movie Poster"
             :src="movieData.poster?.url"
+            @load="backdropLoaded = true"
           />
         </div>
       </div>
       <div class="opacity-layer"></div>
       <div class="content">
         <div class="left">
-          <img
-            alt="Movie Poster"
-            class="posterImg"
-            :src="movieData.poster?.url"
-          />
+          <div class="poster-wrap">
+            <div
+              v-show="!posterLoaded"
+              class="img-skeleton poster-skeleton"
+            />
+            <img
+              v-show="posterLoaded"
+              alt="Movie Poster"
+              class="posterImg"
+              :src="movieData.poster?.url"
+              @load="posterLoaded = true"
+            />
+          </div>
           <MovieRatingBookmark
             :movie-id="movieData.id"
-            :initial-rating="rating"
-            :is-bookmarked="isBookmarked"
-            @update-rating="updateRating"
-            @toggle-bookmark="toggleBookmark"
           />
         </div>
 
@@ -46,14 +59,14 @@
     </div>
 
     <MovieCast
-      v-if="movieData.type !== 'cartoon'"
+      v-if="movieData.id && movieData.type !== 'cartoon'"
       :cast="movieData.cast"
     />
     <RecommendSection />
   </div>
 </template>
 <script>
-  import { mapState, mapGetters, mapActions } from 'vuex'
+  import { mapState } from 'vuex'
   import RecommendSection from '@/components/RecommendSection.vue'
   import MovieRatingBookmark from '@/components/moviePage/MovieRatingBookmark.vue'
   import MovieCast from '@/components/moviePage/MovieCast.vue'
@@ -71,71 +84,50 @@
 
     data() {
       return {
-        rating: 0,
+        backdropLoaded: false,
+        posterLoaded: false,
       }
     },
-
     computed: {
-      ...mapState(['movie', 'bookmarks']),
-      ...mapGetters(['isMovieRated']),
+      ...mapState('movie', ['movies']),
+      ...mapState('bookmarks', ['bookmarks']),
 
       breadcrumbItems() {
         return [
           { title: 'KinOx', href: '/' },
-          { title: this.movieData.name, disabled: true },
+          { title: this.movieData?.name ?? 'Фильм', disabled: true },
         ]
       },
 
       movieData() {
+        const movies = this.movies
+        if (!Array.isArray(movies)) return {}
         const movieId = parseInt(this.$route.params.id)
-        return this.movie.movies.find((m) => m.id === movieId) || {}
-      },
-
-      isBookmarked() {
-        return this.bookmarks[this.movieData.id] || false
-      },
-
-      ratingKey() {
-        return `rating_${this.movieData.id}`
-      },
-
-      bookmarkKey() {
-        return `bookmark_${this.movieData.id}`
+        return movies.find((m) => m.id === movieId) || {}
       },
     },
 
     methods: {
-      ...mapActions(['toggleBookmark', 'updateRating', 'fetchMovies']),
+      fetchMovies() {
+        return this.$store.dispatch('movie/fetchMovie')
+      },
     },
 
     watch: {
-      isBookmarked(value) {
-        localStorage.setItem(this.bookmarkKey, value.toString())
-      },
-
-      rating(value) {
-        localStorage.setItem(this.ratingKey, value.toString())
+      'movieData.poster?.url'() {
+        this.backdropLoaded = !this.movieData.poster?.url
+        this.posterLoaded = !this.movieData.poster?.url
       },
     },
-
-    created() {
-      const storedRating = localStorage.getItem(this.ratingKey)
-      if (storedRating) {
-        this.rating = parseInt(storedRating)
-      }
-
-      const storedBookmark = localStorage.getItem(this.bookmarkKey)
-      if (storedBookmark === 'true') {
-        this.$store.commit('SET_BOOKMARK', {
-          movieId: this.movieData.id,
-          value: true,
-        })
-      }
-    },
-
     mounted() {
-      if (!this.movie.movies.length) {
+      this.$store.dispatch('bookmarks/loadBookmarks')
+      this.$store.dispatch('ratings/loadRatings')
+      if (!Array.isArray(this.movies) || !this.movies.length) {
         this.fetchMovies()
+      }
+      if (!this.movieData?.poster?.url) {
+        this.backdropLoaded = true
+        this.posterLoaded = true
       }
     },
   }
@@ -197,10 +189,30 @@
     overflow: hidden;
   }
 
-  .detailsBanner .backdrop-img img {
+  .detailsBanner .backdrop-img .img-wrap {
+    position: relative;
     width: 100%;
     height: 100%;
+  }
 
+  .detailsBanner .backdrop-img .backdrop-skeleton {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 25%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.04) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shine 1.2s ease-in-out infinite;
+  }
+
+  .detailsBanner .backdrop-img img {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     object-position: center;
   }
 
@@ -223,6 +235,27 @@
 
   .left .row {
     margin-top: 20px;
+  }
+
+  .poster-wrap {
+    position: relative;
+    width: 100%;
+  }
+
+  .poster-wrap .poster-skeleton {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    aspect-ratio: 2/3;
+    border-radius: 12px;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.06) 25%,
+      rgba(255, 255, 255, 0.12) 50%,
+      rgba(255, 255, 255, 0.06) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shine 1.2s ease-in-out infinite;
   }
 
   .posterImg {
@@ -368,6 +401,12 @@
   @media (max-width: 400px) {
     .container {
       max-width: 350px !important;
+    }
+  }
+
+  @keyframes skeleton-shine {
+    to {
+      background-position: 200% 0;
     }
   }
 </style>

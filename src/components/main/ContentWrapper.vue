@@ -2,10 +2,16 @@
   <div class="ContentWrapper">
     <div class="heroBanner">
       <div class="backdrop-img">
-        <div class="lazy-load-image-background">
+        <div class="lazy-load-image-background hero-img-wrap">
+          <div
+            v-show="!heroImageLoaded"
+            class="hero-skeleton"
+          />
           <img
+            v-show="heroImageLoaded"
             src="/fon.png"
             alt=""
+            @load="heroImageLoaded = true"
           />
         </div>
       </div>
@@ -44,6 +50,7 @@
         searchQuery: '',
         isMenuOpen: false,
         showResults: false,
+        heroImageLoaded: false,
       }
     },
     computed: {
@@ -51,8 +58,8 @@
     },
 
     methods: {
-      ...mapActions(['searchMovies']),
-      ...mapMutations(['setSearchQuery']),
+      ...mapActions('movie', ['searchMovies']),
+      ...mapMutations('movie', ['setSearchQuery']),
 
       handleInput() {
         this.showResults = true
@@ -102,6 +109,31 @@
   .heroBanner .backdrop-img .lazy-load-image-background {
     width: 100%;
     height: 100%;
+  }
+
+  .heroBanner .backdrop-img .hero-img-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-skeleton {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 25%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.04) 75%
+    );
+    background-size: 200% 100%;
+    animation: hero-skeleton-shine 1.2s ease-in-out infinite;
+  }
+
+  @keyframes hero-skeleton-shine {
+    to {
+      background-position: 200% 0;
+    }
   }
 
   .backdrop-img .lazy-load-image-background img {

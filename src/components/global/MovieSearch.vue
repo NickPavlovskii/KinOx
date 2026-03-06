@@ -1,331 +1,372 @@
 <template>
-  <form
-    :class="['search', { opened: isOpened }]"
-    @click="openSearch"
-  >
-    <input
-      ref="inputRef"
-      v-model="searchQuery"
-      type="text"
-      class="search-input"
-      spellcheck="false"
-      :placeholder="searchPlaceholder"
-      @input="handleInput"
-      @keydown.enter.prevent="handleEnter"
-      @blur="onBlur"
-    />
+  <div class="search-wrapper">
+    <form
+      :class="['search', 'search-desktop',{ opened: isOpened }]"
+      @click="openSearch"
+    >
+      <input
+        ref="inputRef"
+        v-model="searchQuery"
+        type="text"
+        class="search-input"
+        spellcheck="false"
+        :placeholder="searchPlaceholder"
+        @input="handleInput"
+        @keydown.enter.prevent="handleEnter"
+        @blur="onBlur"
+      />
 
     <div
       class="cross"
       @click.stop="clearAndClose"
     ></div>
 
-    <div
-      v-if="
-        isOpened && searchQuery.trim().length >= 1 && filteredMoviesList.length
-      "
-      class="dropdown"
-    >
-      <router-link
-        v-for="movie in filteredMoviesList"
-        :key="movie.id"
-        :to="{ name: 'movie-details', params: { id: movie.id } }"
-        class="dropdown-item"
-        @click="clearAndClose"
-      >
-        <img
-          :src="movie.poster.url"
-          class="dropdown-image"
-          alt="Постер"
-        />
-        <div class="dropdown-info">
-          <h3 class="dropdown-name">{{ movie.name }}</h3>
-          <p class="dropdown-shortDesc">{{ movie.shortDescription }}</p>
-          <div class="info-row">
-            <span>
-              <i class="pi pi-clock"></i>
-              {{ convertMinutesToHours(movie.movieLength) }}
-            </span>
-            <span>
-              <i class="pi pi-calendar"></i>
-              {{ movie.year }}
-            </span>
-          </div>
+      <transition name="dropdown-fade">
+        <div
+          v-if="showDropdown"
+          class="dropdown"
+        >
+          <router-link
+            v-for="movie in filteredMoviesList"
+            :key="movie.id"
+            :to="{ name: 'movie-details', params: { id: movie.id } }"
+            class="dropdown-item"
+            @click="clearAndClose"
+          >
+            <img
+              class="dropdown-image"
+              alt="Постер"
+              :src="movie.poster?.url"
+            />
+            <div class="dropdown-info">
+              <h3 class="dropdown-name">{{ movie.name }}</h3>
+              <p class="dropdown-shortDesc">{{ movie.shortDescription }}</p>
+              <div class="info-row">
+                <span>
+                  <i class="pi pi-clock">
+                  </i>{{ formatDuration(movie.movieLength)}}
+                </span>
+                <span>
+                  <i class="pi pi-calendar"></i>
+                  {{ movie.year }}
+                </span>
+              </div>
+            </div>
+          </router-link>
         </div>
-      </router-link>
-    </div>
-  </form>
+      </transition>
+    </form>
+
+    <button
+      class="search-mobile-btn"
+      aria-label="Открыть поиск"
+      @click="openMobileSearch"
+    >
+      <i class="pi pi-search"></i>
+    </button>
+    <mobile-search-overlay
+      ref="mobileOverlayRef"
+      :open="isMobileOpen"
+      :search-query="searchQuery"
+      :filtered-movies-list="filteredMoviesList"
+      :is-loading="isLoading"
+      @input="onMobileInput"
+      @enter="handleMobileEnter"
+      @clear="clearMobileQuery"
+      @close="closeMobileSearch"
+    />
+  </div>
 </template>
 
 <script>
-  import { mapState, mapActions, mapMutations } from 'vuex'
+import { mapState, mapActions, mapMutations } from 'vuex'
+import { formatDuration } from '@/utils/format'
+import MobileSearchOverlay from './MobileSearchOverlay.vue'
 
-  export default {
-    name: 'SearchBox',
-    data() {
-      return {
-        searchQuery: '',
-        isOpened: false,
-        timerId: null,
+export default {
+  name: 'SearchBox',
+  components: { MobileSearchOverlay },
+  data() {
+    return {
+      searchQuery: '',
+      isOpened: false,
+      isMobileOpen: false,
+      isLoading: false,
+      timerId: null,
+    }
+  },
+  computed: {
+    ...mapState(['movie']),
+    filteredMoviesList() {
+      return this.movie.filteredMovies.slice(0, 5)
+    },
+    searchPlaceholder() {
+      return this.isOpened ? 'Поиск фильмов...' : ''
+    },
+    showDropdown() {
+      return this.isOpened && this.searchQuery.trim().length >= 1 && this.filteredMoviesList.length
+    },
+  },
+  watch: {
+    isMobileOpen(val) {
+      document.body.style.overflow = val ? 'hidden' : ''
+      if (val) {
+        this.$nextTick(() => this.$refs.mobileOverlayRef?.$refs.mobileInputRef?.focus())
       }
     },
-    computed: {
-      ...mapState(['movie']),
-      filteredMoviesList() {
-        return this.movie.filteredMovies.slice(0, 3)
-      },
-      searchPlaceholder() {
-        return this.isOpened ? 'Поиск фильмов...' : ''
-      },
+  },
+  beforeUnmount() {
+    document.body.style.overflow = ''
+  },
+  methods: {
+    ...mapActions('movie', ['searchMovies']),
+    ...mapMutations('movie', ['setSearchQuery']),
+
+    openSearch() {
+      if (!this.isOpened) {
+        this.isOpened = true
+        setTimeout(() => this.$refs.inputRef?.focus(), 300)
+      }
     },
-    methods: {
-      ...mapActions(['searchMovies']),
-      ...mapMutations(['setSearchQuery']),
-      openSearch() {
-        if (!this.isOpened) {
-          this.isOpened = true
-          setTimeout(() => this.$refs.inputRef?.focus(), 300)
-        }
-      },
-      clearAndClose() {
-        this.searchQuery = ''
-        this.isOpened = false
-        this.$refs.inputRef?.blur()
-      },
-      onBlur() {
-        setTimeout(() => {
-          if (this.searchQuery === '') this.isOpened = false
-        }, 200)
-      },
-      handleInput() {
-        clearTimeout(this.timerId)
-        this.timerId = setTimeout(() => {
-          this.setSearchQuery(this.searchQuery)
-          this.searchMovies()
-        }, 500)
-      },
-      handleEnter() {
+    clearAndClose() {
+      this.searchQuery = ''
+      this.isOpened = false
+      this.$refs.inputRef?.blur()
+    },
+    onBlur() {
+      setTimeout(() => {
+        if (this.searchQuery === '') this.isOpened = false
+      }, 200)
+    },
+    handleEnter() {
+      this.$router.push({ path: '/search', query: { q: this.searchQuery } })
+    },
+
+    openMobileSearch() {
+      this.isMobileOpen = true
+    },
+    closeMobileSearch() {
+      this.isMobileOpen = false
+      this.searchQuery = ''
+      this.setSearchQuery('')
+    },
+    clearMobileQuery() {
+      this.searchQuery = ''
+      this.setSearchQuery('')
+      this.$refs.mobileOverlayRef?.$refs.mobileInputRef?.focus()
+    },
+    onMobileInput(val) {
+      this.searchQuery = val
+      this.handleInput()
+    },
+    handleMobileEnter() {
+      if (this.searchQuery.trim()) {
         this.$router.push({ path: '/search', query: { q: this.searchQuery } })
-      },
-      convertMinutesToHours(minutes) {
-        const h = Math.floor(minutes / 60)
-        const m = minutes % 60
-        return `${h}ч ${m}м`
-      },
+        this.closeMobileSearch()
+      }
     },
-  }
+
+    handleInput() {
+      this.isLoading = true
+      clearTimeout(this.timerId)
+      this.timerId = setTimeout(async () => {
+        this.setSearchQuery(this.searchQuery)
+        await this.searchMovies()
+        this.isLoading = false
+      }, 400)
+    },
+    formatDuration,
+  },
+}
 </script>
 
 <style scoped lang="scss">
-  $white: #fff;
-  $black: #1d2125;
-  $font-family: 'Questrial', sans-serif;
-  $border-width: 0.1rem;
-  $search-height: 1.8rem;
-  $search-width: 25rem;
+$white: #fff;
+$font-family: 'Questrial', sans-serif;
+$border-width: 0.1rem;
+$search-height: 1.3rem;
+$search-width: 25rem;
 
-  .search {
-    position: relative;
-    display: inline-block;
-    margin-right: 10px;
-    margin-bottom: 10px;
-    .search-input {
-      background: none;
-      border: $border-width solid $white;
-      border-radius: $search-height;
-      height: $search-height;
-      width: $search-height;
-      color: $white;
-      padding: 0.2rem 0.6rem;
-      font-family: $font-family;
-      font-size: 0.65rem;
-      letter-spacing: 0.01rem;
-      transition: all 0.3s ease;
-      cursor: pointer;
-      min-width: $search-height;
-      max-width: $search-width;
+.search-mobile-btn {
+  display: none;
+}
 
-      &:focus {
-        outline: none;
-        width: $search-width;
-        cursor: text;
-      }
-    }
+.search-desktop {
+  position: relative;
+  display: inline-block;
+  margin-right: 10px;
+  margin-bottom: 6px;
 
-    .cross {
-      position: absolute;
-      bottom: 4px;
-      right: 0.3rem;
-      cursor: pointer;
-      width: 23px;
-      height: 16px;
-      transform: translateX(22px) translateY(14px);
-      transition: all 0.3s 0.3s ease;
+  .search-input {
+    background: none;
+    border: $border-width solid $white;
+    border-radius: $search-height;
+    height: $search-height;
+    width: $search-height;
+    color: $white;
+    padding: 0.2rem 0.6rem;
+    font-family: $font-family;
+    font-size: 0.65rem;
+    letter-spacing: 0.01rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-width: $search-height;
+    max-width: $search-width;
 
-      &:before,
-      &:after {
-        content: '';
-        display: block;
-        background: $white;
-        position: absolute;
-        width: $border-width;
-        height: 0.9rem;
-        transition: all 0.3s ease;
-        left: 0.45rem;
-      }
-
-      &:before {
-        transform: rotate(-45deg);
-      }
-
-      &:after {
-        transform: rotate(-45deg);
-      }
-    }
-
-    &.opened {
-      .search-input {
-        width: $search-width;
-
-        transition-delay: 0.6s;
-        cursor: text;
-      }
-
-      .cross {
-        transform: translateX(4px) translateY(1px);
-        transition-delay: 0s;
-
-        &:before {
-          transition-delay: 0.3s;
-          transform: rotate(45deg);
-        }
-      }
-    }
-
-    .dropdown {
-      position: absolute;
-      top: calc($search-height + 0.3rem);
+    &:focus {
+      outline: none;
       width: $search-width;
-      background: #2c2f34;
-      border-radius: 0.25rem;
-      z-index: 999;
-      padding: 0.3rem 0;
+      cursor: text;
+    }
+  }
 
-      .dropdown-item {
-        display: flex;
-        align-items: flex-start;
-        padding: 0.3rem;
-        color: $white;
-        text-decoration: none;
-        transition: background 0.2s ease;
+  .cross {
+    position: absolute;
+    bottom: 2px;
+    right: 0.3rem;
+    cursor: pointer;
+    width: 23px;
+    height: 16px;
+    transform: translateX(22px) translateY(14px);
+    transition: all 0.3s 0.3s ease;
 
-        &:hover {
-          background: #3a3d42;
-        }
+    &:before,
+    &:after {
+      content: '';
+      display: block;
+      background: $white;
+      position: absolute;
+      width: $border-width;
+      height: 0.9rem;
+      transition: all 0.3s ease;
+      left: 0.45rem;
+    }
 
-        .dropdown-image {
-          width: 35%;
+    &:before { transform: rotate(-45deg); }
+    &:after  { transform: rotate(-45deg); }
+  }
 
-          object-fit: cover;
-          margin-right: 0.4rem;
-        }
-
-        .dropdown-info {
-          flex: 1;
-
-          .dropdown-name {
-            font-size: 0.7rem;
-            font-weight: bold;
-            margin: 0;
-          }
-
-          .dropdown-shortDesc {
-            font-size: 0.6rem;
-            margin: 0.2rem 0;
-            color: #ccc;
-          }
-
-          .info-row {
-            display: flex;
-            gap: 0.4rem;
-            font-size: 0.55rem;
-            color: #aaa;
-          }
-        }
+  &.opened {
+    .search-input {
+      width: $search-width;
+      transition-delay: 0.6s;
+      cursor: text;
+    }
+    .cross {
+      transform: translateX(4px) translateY(1px);
+      transition-delay: 0s;
+      &:before {
+        transition-delay: 0.3s;
+        transform: rotate(45deg);
       }
     }
   }
 
-  @media (max-width: 1024px) {
-    $search-width: 15rem;
+  .dropdown {
+    position: absolute;
+    top: calc($search-height + 0.3rem);
+    width: $search-width;
+    background: #1e2025;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 0.5rem;
+    z-index: 999;
+    padding: 0.3rem 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
 
-    .search {
-      .search-input {
-        max-width: $search-width;
+    .dropdown-item {
+      display: flex;
+      align-items: flex-start;
+      padding: 0.4rem 0.5rem;
+      color: $white;
+      text-decoration: none;
+      transition: background 0.15s ease;
+      gap: 0.5rem;
 
-        &:focus {
-          width: $search-width;
-        }
+      &:hover { background: rgba(255,255,255,0.06); }
+
+      .dropdown-image {
+        width: 32%;
+        border-radius: 0.2rem;
+        object-fit: cover;
+        flex-shrink: 0;
       }
 
-      .dropdown {
-        width: $search-width;
+      .dropdown-info {
+        flex: 1;
+        min-width: 0;
+
+        .dropdown-name {
+          font-size: 0.7rem;
+          font-weight: 600;
+          margin: 0 0 0.2rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .dropdown-shortDesc {
+          font-size: 0.58rem;
+          margin: 0 0 0.25rem;
+          color: #999;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .info-row {
+          display: flex;
+          gap: 0.5rem;
+          font-size: 0.55rem;
+          color: #888;
+
+          i { font-size: 0.5rem; margin-right: 0.15rem; }
+        }
       }
     }
   }
+}
 
-  @media (max-width: 768px) {
-    $search-width: 14rem;
+.dropdown-fade-enter-active,
+.dropdown-fade-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.dropdown-fade-enter-from,
+.dropdown-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
 
-    .search {
-      margin-right: 0;
-      .search-input {
-        max-width: $search-width;
+@media (max-width: 1024px) {
+  .search-desktop {
+    .search-input { max-width: 15rem; &:focus { width: 15rem; } }
+    .dropdown { width: 15rem; }
+  }
+}
 
-        &:focus {
-          width: $search-width;
-        }
-      }
+@media (max-width: 768px) {
+  .search-desktop { display: none !important; }
 
-      .dropdown {
-        width: $search-width;
-      }
+  .search-mobile-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+    color: $white;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+    margin-bottom: 4px;
+
+    i { font-size: 0.85rem; }
+
+    &:active {
+      background: rgba(255,255,255,0.15);
+      transform: scale(0.93);
     }
   }
-
-  @media (max-width: 480px) {
-    $search-width: 9rem;
-
-    .search {
-      .search-input {
-        max-width: $search-width;
-
-        &:focus {
-          width: $search-width;
-        }
-      }
-
-      .dropdown {
-        width: $search-width;
-      }
-    }
-  }
-
-  @media (max-width: 400px) {
-    $search-width: 6rem;
-
-    .search {
-      .search-input {
-        max-width: $search-width;
-
-        &:focus {
-          width: $search-width;
-        }
-      }
-
-      .dropdown {
-        width: $search-width;
-      }
-    }
-  }
+}
 </style>

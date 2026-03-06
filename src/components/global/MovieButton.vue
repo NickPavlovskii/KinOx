@@ -93,6 +93,7 @@ export default {
   color: #fff;
   font-size: 1rem;
   font-weight: 700;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(2, 126, 251, 0.3);
@@ -106,18 +107,30 @@ export default {
     box-shadow: 0 6px 18px rgba(2, 126, 251, 0.45);
   }
 
-  &__icon {
-    font-size: 20px;
+  &__content {
     display: inline-flex;
     align-items: center;
+    gap: 8px;
+    line-height: 1;
+  }
+
+  &__icon {
+    font-size: 1.25em;
+    width: 1.25em;
+    height: 1.25em;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
     transition: transform 0.3s ease;
 
     &--left {
-      margin-right: 4px;
+      margin-right: 2px;
     }
 
     &--right {
-      margin-left: 4px;
+      margin-left: 2px;
     }
 
     &:hover {
@@ -127,6 +140,8 @@ export default {
 
   &__label {
     display: inline-block;
+    line-height: 1;
+    vertical-align: middle;
   }
 }
 

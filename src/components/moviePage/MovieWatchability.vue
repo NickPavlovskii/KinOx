@@ -12,11 +12,18 @@
         <a
           target="_blank"
           :href="item.url"
+          class="watchability-link"
         >
+          <div
+            v-show="!logoLoaded[item._id]"
+            class="watchability-logo-skeleton"
+          />
           <img
+            v-show="logoLoaded[item._id]"
             class="watchability-logo"
-            :src="item.logo.url"
+            :src="item.logo?.url"
             :alt="item.name"
+            @load="onLogoLoad(item._id)"
           />
         </a>
       </li>
@@ -28,6 +35,16 @@
   export default {
     props: {
       items: Array,
+    },
+    data() {
+      return {
+        logoLoaded: {},
+      }
+    },
+    methods: {
+      onLogoLoad(id) {
+        this.logoLoaded = { ...this.logoLoaded, [id]: true }
+      },
     },
   }
 </script>
@@ -64,13 +81,41 @@
     height: 8px;
   }
 
+  .watchability-link {
+    position: relative;
+    display: block;
+  }
+
+  .watchability-logo-skeleton {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.06) 25%,
+      rgba(255, 255, 255, 0.12) 50%,
+      rgba(255, 255, 255, 0.06) 75%
+    );
+    background-size: 200% 100%;
+    animation: logo-skeleton-shine 1.2s ease-in-out infinite;
+  }
+
   .watchability-logo {
+    position: relative;
     width: 50px;
     height: 50px;
     border-radius: 50%;
     overflow: hidden;
     margin-bottom: 15px;
     transition: transform 0.3s ease;
+    object-fit: cover;
+  }
+
+  @keyframes logo-skeleton-shine {
+    to {
+      background-position: 200% 0;
+    }
   }
   .cast-logo {
     width: 100px;

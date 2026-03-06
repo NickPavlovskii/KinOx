@@ -50,19 +50,8 @@ const actions = {
       },
     
  
-   updateRating({ commit, state }, { movieId, rating }) {
+   updateRating({ commit }, { movieId, rating }) {
     commit('updateRating', { movieId, rating });
-    if (rating === 0) {
-      const updatedMovies = state.movies.map(movie => {
-        if (movie.id === movieId) {
-          return { ...movie, rating: 0 };
-        }
-        return movie;
-      });
-      localStorage.setItem('movies', JSON.stringify(updatedMovies));
-    } else {
-      localStorage.setItem('movies', JSON.stringify(state.movies));
-    }
   },
 
 
@@ -80,6 +69,7 @@ const getters = {
 };
 
 export default {
+  namespaced: true,
   state,
   mutations,
   actions,

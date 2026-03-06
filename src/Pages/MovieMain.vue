@@ -27,8 +27,7 @@
 </template>
 
 <script>
-  import { mapActions, mapState } from 'vuex'
-
+  import { mapState } from 'vuex'
   import MovieList from '@/components/MovieList.vue'
   import ContentWrapper from '@/components/main/ContentWrapper.vue'
   import TopMovie from '@/components/main/TopMovie.vue'
@@ -60,7 +59,6 @@
       ...mapState(['movie']),
     },
     methods: {
-      ...mapActions(['movie', 'fetchMovies']),
       async searchMoviesWithLoader() {
         this.isLoading = true
         await new Promise((resolve) => setTimeout(resolve, 2000))
